@@ -1,7 +1,4 @@
-try:
-    from .combatant import Combatant, CombatState
-except ImportError:  # pragma: no cover - fallback for direct execution
-    from combatant import Combatant, CombatState
+from combatant import Combatant, CombatState
 
 
 class Game1On1Combat:
@@ -38,4 +35,8 @@ class Game1On1Combat:
         if self.combatant1.initiative == self.combatant2.initiative:
             return self.combatant1
 
-        return self.combatant1 if self.combatant1.initiative > self.combatant2.initiative else self.combatant2
+        return (
+            self.combatant1
+            if self.combatant1.initiative > self.combatant2.initiative
+            else self.combatant2
+        )

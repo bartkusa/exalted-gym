@@ -7,18 +7,11 @@ from gymnasium.spaces import Box, Discrete
 from pettingzoo import AECEnv
 from pettingzoo.utils.agent_selector import agent_selector
 
-try:
-    from .character import Character
-    from .combat_actions import CombatActions
-    from .combatant import CombatState, Combatant
-    from .dice import roll_d10s
-    from .game_1on1_combat import Game1On1Combat
-except ImportError:  # pragma: no cover - fallback for direct execution
-    from character import Character
-    from combat_actions import CombatActions
-    from combatant import CombatState, Combatant
-    from dice import roll_d10s
-    from game_1on1_combat import Game1On1Combat
+from character import Character
+from combat_actions import CombatActions
+from combatant import CombatState, Combatant
+from dice import roll_d10s
+from game_1on1_combat import Game1On1Combat
 
 
 class ExaltedEnv(AECEnv):
@@ -40,7 +33,9 @@ class ExaltedEnv(AECEnv):
         self.possible_agents = ["player_0", "player_1"]
         self.agents: list[str] = []
 
-        self.action_spaces = {agent: Discrete(len(self.ACTIONS)) for agent in self.possible_agents}
+        self.action_spaces = {
+            agent: Discrete(len(self.ACTIONS)) for agent in self.possible_agents
+        }
         self.observation_spaces = {
             agent: Box(low=-200, high=200, shape=(12,), dtype=np.int32)
             for agent in self.possible_agents
@@ -101,7 +96,9 @@ class ExaltedEnv(AECEnv):
         self.game = Game1On1Combat(actor_0, actor_1)
 
         self._agent_selector = agent_selector(self.agents)
-        self.agent_selection = self._select_agent_from_game() or self._agent_selector.next()
+        self.agent_selection = (
+            self._select_agent_from_game() or self._agent_selector.next()
+        )
 
     def observe(self, agent):
         me = self._combatants[agent]
@@ -131,7 +128,10 @@ class ExaltedEnv(AECEnv):
     def step(self, action):
         if self.agent_selection is None:
             return
-        if self.terminations[self.agent_selection] or self.truncations[self.agent_selection]:
+        if (
+            self.terminations[self.agent_selection]
+            or self.truncations[self.agent_selection]
+        ):
             self._was_dead_step(action)
             return
 
@@ -162,7 +162,11 @@ class ExaltedEnv(AECEnv):
         elif chosen_action == CombatActions.DECISIVE_ATTACK:
             self._resolve_decisive(attacker_agent=agent, defender_agent=other)
 
-        if self.game is not None and self.game.round > self.max_rounds and not self._is_done():
+        if (
+            self.game is not None
+            and self.game.round > self.max_rounds
+            and not self._is_done()
+        ):
             self.truncations[agent] = True
             self.truncations[other] = True
 
@@ -200,12 +204,28 @@ class ExaltedEnv(AECEnv):
 
     def _static_defense(self, combatant: Combatant, agent: str) -> int:
         dodge_defense = combatant.character.dexterity + combatant.character.dodge
-        melee_defense = combatant.character.dexterity + combatant.character.melee + combatant.weapon1.defense
+        melee_defense = (
+            combatant.character.dexterity
+            + combatant.character.melee
+            + combatant.weapon1.defense
+        )
         full_defense_bonus = 2 if self._full_defense_active[agent] else 0
-        return max(0, max(dodge_defense, melee_defense) - combatant.onslaught_penalty + full_defense_bonus)
+        return max(
+            0,
+            max(dodge_defense, melee_defense)
+            - combatant.onslaught_penalty
+            + full_defense_bonus,
+        )
 
-    def _attack_successes(self, attacker: Combatant, defender: Combatant, defender_agent: str) -> int:
-        pool = max(1, attacker.character.dexterity + attacker.character.melee + attacker.weapon1.accuracy)
+    def _attack_successes(
+        self, attacker: Combatant, defender: Combatant, defender_agent: str
+    ) -> int:
+        pool = max(
+            1,
+            attacker.character.dexterity
+            + attacker.character.melee
+            + attacker.weapon1.accuracy,
+        )
         attack_sux = roll_d10s(pool).sux
         defense = self._static_defense(defender, defender_agent)
         return max(0, attack_sux - defense)

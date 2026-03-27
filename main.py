@@ -1,11 +1,11 @@
-from pathlib import Path
-import sys
+# from pathlib import Path
+# import sys
 
 
-ROOT = Path(__file__).parent
-sys.path.append(str(ROOT / "exalted-env"))
+# ROOT = Path(__file__).parent
+# sys.path.append(str(ROOT / "exalted-env"))
 
-from env.exalted_environment import ExaltedEnv
+from exalted_env.exalted_env_v0 import ExaltedEnv
 
 
 def run_smoke_test(episodes: int = 5) -> None:

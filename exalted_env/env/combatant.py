@@ -1,13 +1,8 @@
 from enum import Enum
 
-try:
-    from .armor import Armor, noArmor
-    from .character import Character
-    from .weapon import Weapon, fists
-except ImportError:  # pragma: no cover - fallback for direct execution
-    from armor import Armor, noArmor
-    from character import Character
-    from weapon import Weapon, fists
+from armor import Armor, noArmor
+from character import Character
+from weapon import Weapon, fists
 
 
 class CombatState(Enum):
