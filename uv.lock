@@ -16,11 +16,15 @@ name = "exalted-gym"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "numpy" },
     { name = "pettingzoo" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pettingzoo", specifier = ">=1.25.0" }]
+requires-dist = [
+    { name = "numpy", specifier = ">=2.4.3" },
+    { name = "pettingzoo", specifier = ">=1.25.0" },
+]
 
 [[package]]
 name = "farama-notifications"

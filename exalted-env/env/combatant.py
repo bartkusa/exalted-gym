@@ -1,6 +1,19 @@
-from armor import Armor, noArmor
-from character import Character
-from weapon import Weapon, fists
+from enum import Enum
+
+try:
+    from .armor import Armor, noArmor
+    from .character import Character
+    from .weapon import Weapon, fists
+except ImportError:  # pragma: no cover - fallback for direct execution
+    from armor import Armor, noArmor
+    from character import Character
+    from weapon import Weapon, fists
+
+
+class CombatState(Enum):
+    ACTIVE = 1
+    SURRENDERED = 0
+    DEAD = -1
 
 
 class Combatant:
@@ -15,12 +28,12 @@ class Combatant:
 
         # ephemeral combat state
         self.damage: int = 0
-        self.initiative: int = 3
+        self.initiative: int = 0
         self.onslaught_penalty: int = 0
         self.took_turn: bool = False
-        self.state: "Active" | "Dead" | "Surrendered" = "Active"
+        self.state: CombatState = CombatState.ACTIVE
 
         # equipment
-        self.armor = armor
+        self.armor = armor or noArmor
         self.weapon1 = weapon
         self.weapon2: Weapon | None = fists

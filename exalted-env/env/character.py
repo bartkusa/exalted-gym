@@ -13,7 +13,7 @@ class Character:
         dodge: int,
         melee: int,
         # misc
-        health_levels: list[int] = [0, 0, -1, -1, -2, -2, -4]
+        health_levels: list[int] | None = None
     ) -> None:
         self.name = name
 
@@ -26,4 +26,4 @@ class Character:
         self.dodge = dodge
         self.melee = melee
 
-        self.health_levels = health_levels
+        self.health_levels = health_levels or [0, 0, -1, -1, -2, -2, -4]

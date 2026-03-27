@@ -1,23 +1,24 @@
 import random
 
+
 class RollResult:
     def __init__(self, successes: int, rolls: list[int]) -> None:
         self.rolls = rolls
         self.sux = successes
-        pass
 
 
-def roll_d10s(pool: int, *, double: list[int] = [10], target: int = 7) -> RollResult:
-    if (pool <= 0):
+def roll_d10s(pool: int, *, double: list[int] | None = None, target: int = 7) -> RollResult:
+    if pool <= 0:
         return RollResult(0, [])
 
+    double_values = double or [10]
     rolls = []
     successes = 0
     for _ in range(pool):
         result = random.randint(1, 10)
         rolls.append(result)
 
-        if (result >= target):
-            successes += (2 if result in double else 1)
+        if result >= target:
+            successes += 2 if result in double_values else 1
 
-    return RollResult(successes, [])
+    return RollResult(successes, rolls)
