@@ -8,10 +8,10 @@ from pettingzoo import AECEnv
 from pettingzoo.utils.agent_selector import agent_selector
 
 from combat_actions import CombatActions
-from dice import roll_d10s
 from models.character import Character
 from models.combatant import CombatState, Combatant
 from models.game_1on1_combat import Game1On1Combat
+from rules.dice import roll_d10s
 
 
 class ExaltedEnv(AECEnv):
