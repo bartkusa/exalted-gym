@@ -1,8 +1,8 @@
 from enum import Enum
 
-from armor import Armor, noArmor
-from character import Character
-from weapon import Weapon, fists
+from exalted_env.env.models.armor import Armor, noArmor
+from exalted_env.env.models.character import Character
+from exalted_env.env.models.weapon import Weapon, fists
 
 
 class CombatState(Enum):

@@ -1,4 +1,4 @@
-from combatant import Combatant, CombatState
+from exalted_env.env.models.combatant import Combatant, CombatState
 
 
 class Game1On1Combat:
