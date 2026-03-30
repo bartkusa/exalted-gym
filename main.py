@@ -25,8 +25,8 @@ def run_smoke_test(episodes: int = 5) -> None:
 
         print(
             f"episode={ep} steps={steps} "
-            f"return_p0={episode_returns['player_0']:.3f} "
-            f"return_p1={episode_returns['player_1']:.3f}"
+            f"return_p0={episode_returns['agent_red_1']:.3f} "
+            f"return_p1={episode_returns['agent_blue_1']:.3f}"
         )
     env.close()
 

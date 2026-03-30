@@ -30,7 +30,8 @@ class ExaltedEnv(AECEnv):
     def __init__(self, max_rounds: int = 50):
         super().__init__()
         self.max_rounds = max_rounds
-        self.possible_agents = ["player_0", "player_1"]
+
+        self.possible_agents = ["agent_red_1", "agent_blue_1"]
 
         self.agents: list[str] = []
         """Agents make decisions. Agents are "players", and they control `Combatants`."""
@@ -94,8 +95,8 @@ class ExaltedEnv(AECEnv):
         self.truncations = {agent: False for agent in self.agents}
         self.infos = {agent: {} for agent in self.agents}
 
-        c0 = options.get("character_0") or Character(
-            name="player_0",
+        char_red = options.get("character_red_1") or Character(
+            name="character_red",
             strength=3,
             dexterity=4,
             stamina=3,
@@ -104,8 +105,8 @@ class ExaltedEnv(AECEnv):
             dodge=3,
             melee=4,
         )
-        c1 = options.get("character_1") or Character(
-            name="player_1",
+        char_blue = options.get("character_blue_1") or Character(
+            name="character_blue",
             strength=3,
             dexterity=4,
             stamina=3,
@@ -114,12 +115,16 @@ class ExaltedEnv(AECEnv):
             dodge=3,
             melee=4,
         )
-        actor_0 = Combatant(c0)
-        actor_1 = Combatant(c1)
-        self._combatants = {"player_0": actor_0, "player_1": actor_1}
 
-        rules.join_battle([actor_0, actor_1])
-        self.game = Game1On1Combat(actor_0, actor_1)
+        combatant_red = Combatant(char_red)
+        combatant_blue = Combatant(char_blue)
+        self._combatants = {
+            "agent_red_1": combatant_red,
+            "agent_blue_1": combatant_blue,
+        }
+
+        rules.join_battle([combatant_red, combatant_blue])
+        self.game = Game1On1Combat(combatant_red, combatant_blue)
 
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = (
@@ -222,8 +227,8 @@ class ExaltedEnv(AECEnv):
         if self.game is None:
             print("Environment not initialized. Call reset() first.")
             return
-        p0 = self._combatants["player_0"]
-        p1 = self._combatants["player_1"]
+        p0 = self._combatants["agent_red_1"]
+        p1 = self._combatants["agent_blue_1"]
         print(
             f"Round {self.game.round} | "
             f"P0(init={p0.initiative}, dmg={p0.damage}) "
@@ -237,7 +242,7 @@ class ExaltedEnv(AECEnv):
         return self.action_spaces[agent]
 
     def _other(self, agent: str) -> str:
-        return "player_1" if agent == "player_0" else "player_0"
+        return "agent_blue_1" if agent == "agent_red_1" else "agent_red_1"
 
     def _select_agent_from_game(self) -> str | None:
         if self.game is None:
@@ -245,9 +250,9 @@ class ExaltedEnv(AECEnv):
         actor = self.game.getNextActor()
         if actor is None:
             return None
-        if actor is self._combatants["player_0"]:
-            return "player_0"
-        return "player_1"
+        if actor is self._combatants["agent_red_1"]:
+            return "agent_red_1"
+        return "agent_blue_1"
 
     def _finish_episode(self, winner: str, loser: str):
         # TODO soften loss, if loser surrendered
