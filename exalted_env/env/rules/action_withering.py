@@ -3,6 +3,13 @@ import exalted_env.env.rules.dice as dice
 
 
 def action_withering_attack(attacker: Combatant, defender: Combatant) -> int:
+    """
+    (Ex3 page 191) A move that represents one combatant trying to gain advantage over the other, and steal their
+    Initiative. NEVER causes any damage to the defender.
+
+    Returns:
+        the amount of initiative that the attacker gained; 0 if attack failed
+    """
     # TODO: allow weapons, skills
 
     weapon = attacker.weapon1

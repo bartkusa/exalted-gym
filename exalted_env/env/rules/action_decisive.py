@@ -3,6 +3,13 @@ import exalted_env.env.rules.dice as dice
 
 
 def action_decisive_attack(attacker: Combatant, defender: Combatant) -> int:
+    """
+    (Ex3 page 191) A move that represents one combatant "cashing in" their Initiative, to cause damage to another
+    combatant. The attacker's weapon and defender's armor are mostly irrelvant at this point.
+
+    Returns:
+        the amount of damage that the defender received; 0 if attack failed
+    """
     # TODO: allow weapons, skills
 
     attack_pool = (
