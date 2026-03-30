@@ -159,7 +159,10 @@ class ExaltedEnv(AECEnv):
             rules.action_full_defense(actor)
             self._add_reward(agent, 0.01)
         elif chosen_action == CombatActions.WITHERING_ATTACK:
-            self._resolve_withering(attacker_agent=agent, defender_agent=other)
+            init_gained = rules.action_withering_attack(actor, defender)
+
+            reward = -0.02 if init_gained <= 0 else (0.05 + 0.01 * init_gained)
+            self._add_reward(agent, reward)
         elif chosen_action == CombatActions.DECISIVE_ATTACK:
             dmg_dealt = rules.action_decisive_attack(actor, defender)
 
@@ -207,49 +210,6 @@ class ExaltedEnv(AECEnv):
 
     def _other(self, agent: str) -> str:
         return "player_1" if agent == "player_0" else "player_0"
-
-    def _static_defense(self, combatant: Combatant, agent: str) -> int:
-        dodge_defense = combatant.character.dexterity + combatant.character.dodge
-        melee_defense = (
-            combatant.character.dexterity
-            + combatant.character.melee
-            + combatant.weapon1.defense
-        )
-        return max(
-            0,
-            max(dodge_defense, melee_defense) + combatant.defense_modifier,
-        )
-
-    def _attack_successes(
-        self, attacker: Combatant, defender: Combatant, defender_agent: str
-    ) -> int:
-        pool = max(
-            1,
-            attacker.character.dexterity
-            + attacker.character.melee
-            + attacker.weapon1.accuracy,
-        )
-        attack_sux = rules.roll_d10s(pool).sux
-        defense = self._static_defense(defender, defender_agent)
-        return max(0, attack_sux - defense)
-
-    def _resolve_withering(self, attacker_agent: str, defender_agent: str):
-        attacker = self._combatants[attacker_agent]
-        defender = self._combatants[defender_agent]
-        threshold = self._attack_successes(attacker, defender, defender_agent)
-        if threshold <= 0:
-            self._add_reward(attacker_agent, -0.02)
-            return
-
-        raw_damage = attacker.character.strength + attacker.weapon1.damage + threshold
-        soak = defender.character.stamina + defender.armor.soak
-        dmg_pool = max(attacker.weapon1.overwhelming, raw_damage - soak)
-        init_shift = max(1, rules.roll_d10s(dmg_pool).sux)
-        attacker.initiative += init_shift
-        defender.initiative -= init_shift
-        defender.defense_modifier -= 1
-
-        self._add_reward(attacker_agent, 0.05 + 0.01 * init_shift)
 
     def _select_agent_from_game(self) -> str | None:
         if self.game is None:

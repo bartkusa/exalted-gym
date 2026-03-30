@@ -1,0 +1,36 @@
+from exalted_env.env.models.combatant import Combatant
+import exalted_env.env.rules.dice as dice
+
+
+def action_withering_attack(attacker: Combatant, defender: Combatant) -> int:
+    # TODO: allow weapons, skills
+
+    weapon = attacker.weapon1
+    attack_pool = (
+        attacker.character.dexterity
+        + attacker.character.melee
+        + weapon.accuracy
+        + attacker.wound_penalty
+    )
+    attack_roll = dice.roll_d10s(attack_pool)
+    attack_margin = attack_roll.sux - defender.dv
+
+    # *After* attack roll, apply onslaught penalty to defender
+    defender.defense_modifier -= 1
+
+    if attack_margin < 0:
+        return 0  # Miss
+
+    raw_dmg_pool = attack_margin + attacker.character.strength + weapon.damage
+    post_soak_dmg_pool = max(
+        weapon.overwhelming,
+        raw_dmg_pool - (defender.character.stamina + defender.armor.soak),
+    )
+    damage_roll = dice.roll_d10s(post_soak_dmg_pool)
+
+    attacker.initiative += damage_roll.sux + 1
+    defender.initiative -= damage_roll.sux
+
+    # TODO: initiative crash / shift?
+
+    return damage_roll.sux + 1
