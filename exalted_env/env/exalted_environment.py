@@ -153,7 +153,7 @@ class ExaltedEnv(AECEnv):
             self._add_reward(agent, -0.05)
 
         if chosen_action == CombatActions.SURRENDER:
-            actor.state = CombatState.SURRENDERED
+            rules.action_surrender(actor)
             self._finish_episode(winner=other, loser=agent)
         elif chosen_action == CombatActions.FULL_DEFENSE:
             rules.action_full_defense(actor)
