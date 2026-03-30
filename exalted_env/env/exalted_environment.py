@@ -31,24 +31,52 @@ class ExaltedEnv(AECEnv):
         super().__init__()
         self.max_rounds = max_rounds
         self.possible_agents = ["player_0", "player_1"]
+
         self.agents: list[str] = []
+        """Agents make decisions. Agents are "players", and they control `Combatants`."""
 
         self.action_spaces = {
             agent: Discrete(len(self.ACTIONS)) for agent in self.possible_agents
         }
+        """
+        Each agent has a Gymnasium [`Space`](https://gymnasium.farama.org/api/spaces/), representing the agent's choices
+        on their turn.
+        
+        This creates a mapping between `0,1,2,...` and `ACTIONS`.
+        """
+
         self.observation_spaces = {
             agent: Box(low=-200, high=200, shape=(12,), dtype=np.int32)
             for agent in self.possible_agents
         }
+        """
+        Each agent has a Gymnasium [`Space`](https://gymnasium.farama.org/api/spaces/), representing what the agent can
+        perceive.
+
+        Here, each agent can perceive a vector of `12` numbers (ie, a 12-dimensional box), each in the range
+        `[-200, 200]`.
+        """
 
         self.rewards: dict[str, float] = {}
         self._cumulative_rewards: dict[str, float] = {}
+
         self.terminations: dict[str, bool] = {}
+        """
+        For each agent, may be set to `True` when that agent's ending-condition happens (ie, materialized
+        win/loss)
+        """
+
         self.truncations: dict[str, bool] = {}
+        """For each agent, may be set to `True` when combat terminates without victory (eg, timeout)."""
+
         self.infos: dict[str, dict] = {}
+        """???"""
 
         self.game: Game1On1Combat | None = None
+
         self._combatants: dict[str, Combatant] = {}
+        """Mapping of agent-name to their Combatant"""
+
         self._agent_selector = None
         self.agent_selection: str | None = None
 
@@ -59,6 +87,7 @@ class ExaltedEnv(AECEnv):
 
         options = options or {}
         self.agents = self.possible_agents[:]
+
         self.rewards = {agent: 0.0 for agent in self.agents}
         self._cumulative_rewards = {agent: 0.0 for agent in self.agents}
         self.terminations = {agent: False for agent in self.agents}
