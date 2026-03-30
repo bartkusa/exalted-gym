@@ -1,4 +1,8 @@
 class Character:
+    """
+    Represents a character, outside of combat. Has stats that change very rarely.
+    """
+
     def __init__(
         self,
         *,
@@ -27,3 +31,8 @@ class Character:
         self.melee = melee
 
         self.health_levels = health_levels or [0, 0, -1, -1, -2, -2, -4]
+        """
+        An array of wound penalties. 0-indexed.
+        
+        If the user has _n_ damage, use the penalty at index `n`.
+        """

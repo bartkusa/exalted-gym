@@ -1,12 +1,23 @@
 class Weapon:
+    """(Ex3 page 580)"""
+
     def __init__(
         self, *, acc: int, dfn: int, dmg: int, name: str, overwhelming: int = 1
     ) -> None:
         self.accuracy = acc
+        """Adds to withering attacks' die pools."""
+
         self.defense = dfn
+        """Adds directly to user's Parry. Only one weapon can parry an attack."""
+
         self.damage = dmg
+        """After a successful withering attack, adds directly to the raw damage pool."""
+
         self.name = name
+
         self.overwhelming = overwhelming
+        """The minimum damage pool for a withering attack, after subtracting soak."""
+
         # TO ADD: tags, skills
 
 
