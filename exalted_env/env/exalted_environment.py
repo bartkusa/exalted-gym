@@ -113,6 +113,7 @@ class ExaltedEnv(AECEnv):
             # should observe health. and soak.
             # observe damage... _and_ health? wound modifier?
             [
+                round_num,
                 me.initiative,
                 them.initiative,
                 me.damage,
@@ -122,9 +123,9 @@ class ExaltedEnv(AECEnv):
                 1 if self._full_defense_active[agent] else 0,
                 1 if self._full_defense_active[other_agent] else 0,
                 me.character.dexterity,
-                me.character.melee,
                 them.character.dexterity,
-                round_num,
+                me.character.melee,
+                them.character.melee,
             ],
             dtype=np.int32,
         )
