@@ -11,7 +11,7 @@ from exalted_env.env.combat_actions import CombatActions
 from exalted_env.env.models.character import Character
 from exalted_env.env.models.combatant import CombatState, Combatant
 from exalted_env.env.models.game_1on1_combat import Game1On1Combat
-from exalted_env.env.rules.dice import roll_d10s
+import exalted_env.env.rules as rules
 
 
 class ExaltedEnv(AECEnv):
@@ -87,8 +87,8 @@ class ExaltedEnv(AECEnv):
         )
         actor_0 = Combatant(c0)
         actor_1 = Combatant(c1)
-        actor_0.initiative = 3 + roll_d10s(c0.wits + c0.awareness).sux
-        actor_1.initiative = 3 + roll_d10s(c1.wits + c1.awareness).sux
+        actor_0.initiative = 3 + rules.roll_d10s(c0.wits + c0.awareness).sux
+        actor_1.initiative = 3 + rules.roll_d10s(c1.wits + c1.awareness).sux
 
         self._combatants = {"player_0": actor_0, "player_1": actor_1}
         self.game = Game1On1Combat(actor_0, actor_1)
@@ -224,7 +224,7 @@ class ExaltedEnv(AECEnv):
             + attacker.character.melee
             + attacker.weapon1.accuracy,
         )
-        attack_sux = roll_d10s(pool).sux
+        attack_sux = rules.roll_d10s(pool).sux
         defense = self._static_defense(defender, defender_agent)
         return max(0, attack_sux - defense)
 
@@ -239,7 +239,7 @@ class ExaltedEnv(AECEnv):
         raw_damage = attacker.character.strength + attacker.weapon1.damage + threshold
         soak = defender.character.stamina + defender.armor.soak
         dmg_pool = max(attacker.weapon1.overwhelming, raw_damage - soak)
-        init_shift = max(1, roll_d10s(dmg_pool).sux)
+        init_shift = max(1, rules.roll_d10s(dmg_pool).sux)
         attacker.initiative += init_shift
         defender.initiative -= init_shift
         defender.defense_modifier -= 1
@@ -263,7 +263,7 @@ class ExaltedEnv(AECEnv):
             return
 
         damage_pool = max(1, spent_initiative + threshold - defender.armor.hardness)
-        health_damage = max(1, roll_d10s(damage_pool).sux)
+        health_damage = max(1, rules.roll_d10s(damage_pool).sux)
         defender.damage += health_damage
         defender.defense_modifier -= 1
         self._add_reward(attacker_agent, 0.10 + 0.02 * health_damage)
