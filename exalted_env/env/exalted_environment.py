@@ -107,6 +107,11 @@ class ExaltedEnv(AECEnv):
         round_num = self.game.round if self.game is not None else 1
 
         obs = np.array(
+            # TODO should observe weapon, too.
+            # maybe should just observe DV, and not its constituent pieces?
+            # should observe dodge _and_ parry.
+            # should observe health. and soak.
+            # observe damage... _and_ health? wound modifier?
             [
                 me.initiative,
                 them.initiative,
@@ -285,6 +290,7 @@ class ExaltedEnv(AECEnv):
         return "player_1"
 
     def _finish_episode(self, winner: str, loser: str):
+        # TODO soften loss, if loser surrendered
         self.terminations[winner] = True
         self.terminations[loser] = True
         self._add_reward(winner, 1.0)
