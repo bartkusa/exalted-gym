@@ -161,7 +161,12 @@ class ExaltedEnv(AECEnv):
         elif chosen_action == CombatActions.WITHERING_ATTACK:
             self._resolve_withering(attacker_agent=agent, defender_agent=other)
         elif chosen_action == CombatActions.DECISIVE_ATTACK:
-            self._resolve_decisive(attacker_agent=agent, defender_agent=other)
+            dmg_dealt = rules.action_decisive_attack(actor, defender)
+
+            reward = -0.02 if dmg_dealt <= 0 else (0.10 + 0.02 * dmg_dealt)
+            self._add_reward(agent, reward)
+            if defender.state == CombatState.DEAD:
+                self._finish_episode(winner=agent, loser=other)
 
         if (
             self.game is not None
@@ -245,32 +250,6 @@ class ExaltedEnv(AECEnv):
         defender.defense_modifier -= 1
 
         self._add_reward(attacker_agent, 0.05 + 0.01 * init_shift)
-
-    def _resolve_decisive(self, attacker_agent: str, defender_agent: str):
-        attacker = self._combatants[attacker_agent]
-        defender = self._combatants[defender_agent]
-
-        if attacker.initiative < 3:
-            self._add_reward(attacker_agent, -0.05)
-            return
-
-        threshold = self._attack_successes(attacker, defender, defender_agent)
-        spent_initiative = attacker.initiative
-        attacker.initiative = 3
-
-        if threshold <= 0:
-            self._add_reward(attacker_agent, -0.02)
-            return
-
-        damage_pool = max(1, spent_initiative + threshold - defender.armor.hardness)
-        health_damage = max(1, rules.roll_d10s(damage_pool).sux)
-        defender.damage += health_damage
-        defender.defense_modifier -= 1
-        self._add_reward(attacker_agent, 0.10 + 0.02 * health_damage)
-
-        if defender.damage >= len(defender.character.health_levels):
-            defender.state = CombatState.DEAD
-            self._finish_episode(winner=attacker_agent, loser=defender_agent)
 
     def _select_agent_from_game(self) -> str | None:
         if self.game is None:
