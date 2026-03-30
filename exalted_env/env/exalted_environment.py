@@ -87,10 +87,9 @@ class ExaltedEnv(AECEnv):
         )
         actor_0 = Combatant(c0)
         actor_1 = Combatant(c1)
-        actor_0.initiative = 3 + rules.roll_d10s(c0.wits + c0.awareness).sux
-        actor_1.initiative = 3 + rules.roll_d10s(c1.wits + c1.awareness).sux
-
         self._combatants = {"player_0": actor_0, "player_1": actor_1}
+
+        rules.join_battle([actor_0, actor_1])
         self.game = Game1On1Combat(actor_0, actor_1)
 
         self._agent_selector = agent_selector(self.agents)
