@@ -49,7 +49,6 @@ class ExaltedEnv(AECEnv):
 
         self.game: Game1On1Combat | None = None
         self._combatants: dict[str, Combatant] = {}
-        self._full_defense_active: dict[str, bool] = {}
         self._agent_selector = None
         self.agent_selection: str | None = None
 
@@ -92,7 +91,6 @@ class ExaltedEnv(AECEnv):
         actor_1.initiative = 3 + roll_d10s(c1.wits + c1.awareness).sux
 
         self._combatants = {"player_0": actor_0, "player_1": actor_1}
-        self._full_defense_active = {agent: False for agent in self.agents}
         self.game = Game1On1Combat(actor_0, actor_1)
 
         self._agent_selector = agent_selector(self.agents)
@@ -118,10 +116,8 @@ class ExaltedEnv(AECEnv):
                 them.initiative,
                 me.damage,
                 them.damage,
-                me.onslaught_penalty,
-                them.onslaught_penalty,
-                1 if self._full_defense_active[agent] else 0,
-                1 if self._full_defense_active[other_agent] else 0,
+                me.defense_modifier,
+                them.defense_modifier,
                 me.character.dexterity,
                 them.character.dexterity,
                 me.character.melee,
@@ -148,8 +144,7 @@ class ExaltedEnv(AECEnv):
 
         self._clear_rewards()
         actor.took_turn = True
-        actor.onslaught_penalty = 0
-        self._full_defense_active[agent] = False
+        actor.defense_modifier = 0
 
         try:
             chosen_action = self.ACTIONS[int(action)]
@@ -161,7 +156,7 @@ class ExaltedEnv(AECEnv):
             actor.state = CombatState.SURRENDERED
             self._finish_episode(winner=other, loser=agent)
         elif chosen_action == CombatActions.FULL_DEFENSE:
-            self._full_defense_active[agent] = True
+            actor.defense_modifier += 2
             self._add_reward(agent, 0.01)
         elif chosen_action == CombatActions.WITHERING_ATTACK:
             self._resolve_withering(attacker_agent=agent, defender_agent=other)
@@ -215,12 +210,9 @@ class ExaltedEnv(AECEnv):
             + combatant.character.melee
             + combatant.weapon1.defense
         )
-        full_defense_bonus = 2 if self._full_defense_active[agent] else 0
         return max(
             0,
-            max(dodge_defense, melee_defense)
-            - combatant.onslaught_penalty
-            + full_defense_bonus,
+            max(dodge_defense, melee_defense) + combatant.defense_modifier,
         )
 
     def _attack_successes(
@@ -250,7 +242,7 @@ class ExaltedEnv(AECEnv):
         init_shift = max(1, roll_d10s(dmg_pool).sux)
         attacker.initiative += init_shift
         defender.initiative -= init_shift
-        defender.onslaught_penalty += 1
+        defender.defense_modifier -= 1
 
         self._add_reward(attacker_agent, 0.05 + 0.01 * init_shift)
 
@@ -273,7 +265,7 @@ class ExaltedEnv(AECEnv):
         damage_pool = max(1, spent_initiative + threshold - defender.armor.hardness)
         health_damage = max(1, roll_d10s(damage_pool).sux)
         defender.damage += health_damage
-        defender.onslaught_penalty += 1
+        defender.defense_modifier -= 1
         self._add_reward(attacker_agent, 0.10 + 0.02 * health_damage)
 
         if defender.damage >= len(defender.character.health_levels):

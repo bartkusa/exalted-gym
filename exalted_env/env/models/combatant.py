@@ -24,7 +24,9 @@ class Combatant:
         # ephemeral combat state
         self.damage: int = 0
         self.initiative: int = 0
-        self.onslaught_penalty: int = 0
+        # Defense Modifier is added to DV. Onslaught Penalties decrease it; Full Defense increases it.
+        # This resets to zero on the combatant's turn.
+        self.defense_modifier: int = 0
         self.took_turn: bool = False
         self.state: CombatState = CombatState.ACTIVE
 
