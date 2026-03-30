@@ -88,8 +88,8 @@ class ExaltedEnv(AECEnv):
         )
         actor_0 = Combatant(c0)
         actor_1 = Combatant(c1)
-        actor_0.initiative = 3
-        actor_1.initiative = 3
+        actor_0.initiative = 3 + roll_d10s(c0.wits + c0.awareness).sux
+        actor_1.initiative = 3 + roll_d10s(c1.wits + c1.awareness).sux
 
         self._combatants = {"player_0": actor_0, "player_1": actor_1}
         self._full_defense_active = {agent: False for agent in self.agents}
