@@ -7,11 +7,11 @@ from gymnasium.spaces import Box, Discrete
 from pettingzoo import AECEnv
 from pettingzoo.utils.agent_selector import agent_selector
 
-from character import Character
 from combat_actions import CombatActions
-from combatant import CombatState, Combatant
 from dice import roll_d10s
-from game_1on1_combat import Game1On1Combat
+from models.character import Character
+from models.combatant import CombatState, Combatant
+from models.game_1on1_combat import Game1On1Combat
 
 
 class ExaltedEnv(AECEnv):
