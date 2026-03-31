@@ -350,11 +350,11 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         winning_combatant = self._combatants[winner]
         losing_combatant = self._combatants[loser]
 
-        winner_reward = 1.0 - (winning_combatant.wound_penalty / 10.0)
+        winner_reward = 1.0 + (winning_combatant.wound_penalty / 10.0)
         self.rewards[winner] += float(winner_reward)
 
         if loser_surrendered:
-            loser_reward = -0.2 - (losing_combatant.wound_penalty / 10.0)
+            loser_reward = -0.2 + (losing_combatant.wound_penalty / 10.0)
         else:
             loser_reward = -1.0
         self.rewards[loser] += float(loser_reward)
@@ -366,8 +366,8 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
 
         red = self._combatants[agent_red_1]
         blue = self._combatants[agent_blue_1]
-        self.rewards[agent_red_1] += (blue.wound_penalty - red.wound_penalty) / 10.0
-        self.rewards[agent_blue_1] += (red.wound_penalty - blue.wound_penalty) / 10.0
+        self.rewards[agent_red_1] += (red.wound_penalty - blue.wound_penalty) / 10.0
+        self.rewards[agent_blue_1] += (blue.wound_penalty - red.wound_penalty) / 10.0
 
     def _is_done(self) -> bool:
         """Does any agent have a value in `self.terminations` or `self.truncations`?"""
