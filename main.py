@@ -198,15 +198,17 @@ def run_dqn_training(cfg: DQNConfig) -> None:
     if cfg.spy_log_path:
         spy_path = Path(cfg.spy_log_path)
         spy_path.parent.mkdir(parents=True, exist_ok=True)
-        spy_log_file = spy_path.open("a", encoding="utf-8")
+        spy_log_file = spy_path.open("a", encoding="utf-8", buffering=1)
         spy_log_file.write(
             f"\n===== spy session start seed={cfg.seed} episodes={cfg.episodes} =====\n"
         )
+        spy_log_file.flush()
 
     def _emit_spy(line: str) -> None:
         print(line)
         if spy_log_file is not None:
             spy_log_file.write(line + "\n")
+            spy_log_file.flush()
 
     try:
         for ep in range(start_episode, start_episode + cfg.episodes):
@@ -320,6 +322,7 @@ def run_dqn_training(cfg: DQNConfig) -> None:
     finally:
         if spy_log_file is not None:
             spy_log_file.write("===== spy session end =====\n")
+            spy_log_file.flush()
             spy_log_file.close()
 
     save_path = Path(cfg.save_path)
