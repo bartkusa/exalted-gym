@@ -37,7 +37,7 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
 
     PENALTY_FOR_INVALID_ACTION = -0.2
 
-    def __init__(self, max_rounds: int = 50):
+    def __init__(self, max_rounds: int = 25):
         super().__init__()
         self.max_rounds = max_rounds
 

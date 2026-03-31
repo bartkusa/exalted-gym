@@ -87,7 +87,7 @@ class ReplayBuffer:
 
 
 def run_smoke_test(episodes: int = 5, render: bool = False) -> None:
-    env = ExaltedEnv(max_rounds=40)
+    env = ExaltedEnv(max_rounds=25)
     for ep in range(episodes):
         env.reset(seed=ep)
         episode_returns = {agent: 0.0 for agent in env.possible_agents}
@@ -172,6 +172,7 @@ def run_dqn_training(cfg: DQNConfig) -> None:
     random.seed(cfg.seed)
     np.random.seed(cfg.seed)
     torch.manual_seed(cfg.seed)
+    torch.set_num_threads(4)
 
     env = ExaltedEnv(max_rounds=cfg.max_rounds)
     env.reset(seed=cfg.seed)
