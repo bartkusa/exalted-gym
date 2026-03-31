@@ -3,6 +3,7 @@ import random
 import numpy as np
 from gymnasium.spaces import Box, Discrete
 from pettingzoo import AECEnv
+from pettingzoo.utils.env import AgentID
 
 from exalted_env.env.combat_actions import CombatActions
 from exalted_env.env.models.character import Character
@@ -34,10 +35,10 @@ class ExaltedEnv(AECEnv):
 
         self.possible_agents = ["agent_red_1", "agent_blue_1"]
 
-        self.agents: list[str] = []
+        self.agents: list[AgentID] = []
         """Agents make decisions. Agents are "players", and they control `Combatants`."""
 
-        self.action_spaces = {
+        self.action_spaces: dict[AgentID, Discrete] = {
             agent: Discrete(len(self.ACTIONS)) for agent in self.possible_agents
         }
         """
@@ -47,7 +48,7 @@ class ExaltedEnv(AECEnv):
         This creates a mapping between `0,1,2,...` and `ACTIONS`.
         """
 
-        self.observation_spaces = {
+        self.observation_spaces: dict[AgentID, Box] = {
             agent: Box(low=-200, high=200, shape=(12,), dtype=np.int32)
             for agent in self.possible_agents
         }
@@ -59,27 +60,27 @@ class ExaltedEnv(AECEnv):
         `[-200, 200]`.
         """
 
-        self.rewards: dict[str, float] = {}
-        self._cumulative_rewards: dict[str, float] = {}
+        self.rewards: dict[AgentID, float] = {}
+        self._cumulative_rewards: dict[AgentID, float] = {}
 
-        self.terminations: dict[str, bool] = {}
+        self.terminations: dict[AgentID, bool] = {}
         """
         For each agent, may be set to `True` when that agent's ending-condition happens (ie, materialized
         win/loss)
         """
 
-        self.truncations: dict[str, bool] = {}
+        self.truncations: dict[AgentID, bool] = {}
         """For each agent, may be set to `True` when combat terminates without victory (eg, timeout)."""
 
-        self.infos: dict[str, dict] = {}
+        self.infos: dict[AgentID, dict] = {}
         """???"""
 
         self.game: Game1On1Combat | None = None
 
-        self._combatants: dict[str, Combatant] = {}
+        self._combatants: dict[AgentID, Combatant] = {}
         """Mapping of agent-name to their Combatant"""
 
-        self.agent_selection: str | None = None
+        self.agent_selection: AgentID | None = None
         """Exposes the currently active agent to the driver"""
 
     def reset(self, seed=None, options=None):
@@ -127,7 +128,7 @@ class ExaltedEnv(AECEnv):
         rules.join_battle([combatant_red, combatant_blue])
         self.game = Game1On1Combat(combatant_red, combatant_blue)
 
-        self.agent_selection = self._which_actor_is_next()
+        self.agent_selection = self._which_agent_is_next()
 
     def observe(self, agent):
         me = self._combatants[agent]
@@ -204,8 +205,8 @@ class ExaltedEnv(AECEnv):
             if defender.state == CombatState.DEAD:
                 self._finish_episode(winner=cur_agent, loser=other_agent)
 
-        # End of turn; pick next actor. Round might increment.
-        self.agent_selection = self._which_actor_is_next()
+        # End of turn; pick next agent. Round might increment.
+        self.agent_selection = self._which_agent_is_next()
 
         # If round incremented over max, truncate the game and call it a draw.
         if (
@@ -234,28 +235,28 @@ class ExaltedEnv(AECEnv):
             f"P1(dmg={p1.damage}), init={p1.initiative}"
         )
 
-    def observation_space(self, agent):
+    def observation_space(self, agent: AgentID) -> Box:
         return self.observation_spaces[agent]
 
-    def action_space(self, agent):
+    def action_space(self, agent: AgentID) -> Discrete:
         return self.action_spaces[agent]
 
-    def _other_agent(self, agent: str) -> str:
+    def _other_agent(self, agent: AgentID) -> AgentID:
         return "agent_blue_1" if agent == "agent_red_1" else "agent_red_1"
 
-    def _which_actor_is_next(self) -> str | None:
+    def _which_agent_is_next(self) -> AgentID | None:
         """
         May cause `game.round` to increment.
 
         Returns:
-            The name of the next actor to go, using `rules.who_is_next(Game)`
+            The name of the next agent to go, using `rules.who_is_next(Game)`
         """
         if self.game is None:
             return None
         next_combatant = rules.who_is_next(self.game)
-        return None if next_combatant is None else next_combatant.actor
+        return None if next_combatant is None else next_combatant.agent
 
-    def _finish_episode(self, winner: str, loser: str):
+    def _finish_episode(self, winner: AgentID, loser: AgentID):
         # TODO soften loss, if loser surrendered
         # TODO reduce victory, if winner wounded?
         self.terminations[winner] = True
@@ -267,7 +268,7 @@ class ExaltedEnv(AECEnv):
         """Does any agent have a value in `self.terminations` or `self.truncations`?"""
         return any(self.terminations.values()) or any(self.truncations.values())
 
-    def _add_reward(self, agent: str, value: float):
+    def _add_reward(self, agent: AgentID, value: float):
         """Increment agent's `self.rewards` by `value`, and decrement the other agent's by the same amount"""
         other = self._other_agent(agent)
         self.rewards[agent] += value
