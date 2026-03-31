@@ -35,6 +35,8 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         CombatActions.DECISIVE_ATTACK,
     ]
 
+    PENALTY_FOR_INVALID_ACTION = -0.2
+
     def __init__(self, max_rounds: int = 50):
         super().__init__()
         self.max_rounds = max_rounds
@@ -214,20 +216,19 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         except (ValueError, TypeError, IndexError):
             # Punish invalid actions, instead of crashing?
             chosen_action = CombatActions.FULL_DEFENSE
-            self._add_reward(cur_agent, -0.1)
+            self._add_reward(cur_agent, self.PENALTY_FOR_INVALID_ACTION)
 
         if chosen_action == CombatActions.DECISIVE_ATTACK and cur_combatant.is_crashed:
             chosen_action = CombatActions.FULL_DEFENSE
-            self._add_reward(cur_agent, -0.1)
-
-        if (
+            self._add_reward(cur_agent, self.PENALTY_FOR_INVALID_ACTION)
+        elif (
             chosen_action
             in (CombatActions.WITHERING_ATTACK, CombatActions.DECISIVE_ATTACK)
             and cur_combatant.forced_attack_target is not None
             and cur_combatant.forced_attack_target != defender.agent
         ):
             chosen_action = CombatActions.FULL_DEFENSE
-            self._add_reward(cur_agent, -0.1)
+            self._add_reward(cur_agent, self.PENALTY_FOR_INVALID_ACTION)
 
         # Execute chosen action
         if chosen_action == CombatActions.SURRENDER:
@@ -241,16 +242,16 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
             init_gained = rules.action_withering_attack(
                 cur_combatant, defender, current_round=self.game.round
             )
-            reward = -0.02 if init_gained <= 0 else (0.01 * init_gained)
+            reward = -0.001 if init_gained <= 0 else (0.001 * init_gained)
             self._add_reward(cur_agent, reward)
         elif chosen_action == CombatActions.DECISIVE_ATTACK:
             was_crashed = cur_combatant.is_crashed
             dmg_dealt = rules.action_decisive_attack(cur_combatant, defender)
             self_crashed_now = cur_combatant.is_crashed and not was_crashed
             reward = (
-                -0.08
+                -0.010
                 if self_crashed_now
-                else -0.02 if dmg_dealt <= 0 else (0.02 * dmg_dealt)
+                else -0.006 if dmg_dealt <= 0 else (0.003 * dmg_dealt)
             )
             self._add_reward(cur_agent, reward)
             if defender.state == CombatState.DEAD:
