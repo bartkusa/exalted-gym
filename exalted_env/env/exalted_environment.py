@@ -58,7 +58,7 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         """
 
         self.observation_spaces: dict[PZAgentId, Box] = {
-            agent: Box(low=-200, high=200, shape=(12,), dtype=np.int32)
+            agent: Box(low=-200, high=200, shape=(20,), dtype=np.int32)
             for agent in self.possible_agents
         }
         """
@@ -146,23 +146,40 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         round_num = self.game.round if self.game is not None else 1
 
         obs = np.array(
-            # TODO should observe weapon, too.
-            # maybe should just observe DV, and not its constituent pieces?
-            # should observe dodge _and_ parry.
-            # should observe health. and soak.
-            # observe damage... _and_ health? wound modifier?
             [
                 round_num,
-                me.initiative,
-                them.initiative,
+                # Dynamic layer - what changes, and the model needs to see it change?
                 me.damage,
                 them.damage,
+                me.wound_penalty,
+                them.wound_penalty,
+                me.initiative,
+                them.initiative,
                 me.defense_modifier,
                 them.defense_modifier,
-                me.character.dexterity,
-                them.character.dexterity,
-                me.character.melee,
-                them.character.melee,
+                # Strategic layer - what are the major combined values the model needs to weigh?
+                # withering pool
+                (
+                    me.character.dexterity
+                    + me.character.melee
+                    + me.weapon1.accuracy
+                    + me.wound_penalty
+                ),
+                (
+                    them.character.dexterity
+                    + them.character.melee
+                    + them.weapon1.accuracy
+                    + them.wound_penalty
+                ),
+                # decisive pool
+                me.character.strength + me.weapon1.damage + me.wound_penalty,
+                them.character.strength + them.weapon1.damage + them.wound_penalty,
+                # DV
+                me.dv,
+                them.dv,
+                # Soak
+                me.character.stamina + me.armor.soak,
+                them.character.stamina + them.armor.soak,
             ],
             dtype=np.int32,
         )
