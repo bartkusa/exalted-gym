@@ -20,6 +20,7 @@ def run_smoke_test(episodes: int = 5) -> None:
             agent = env.agent_selection
             action = 0 if agent is None else env.action_space(agent).sample()
             env.step(action)
+            env.render()
             steps += 1
             for name in episode_returns:
                 episode_returns[name] += env.rewards.get(name, 0.0)

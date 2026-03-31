@@ -250,9 +250,9 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         p0 = self._combatants[agent_red_1]
         p1 = self._combatants[agent_blue_1]
         print(
-            f"Round {self.game.round} | "
-            f"P0(dmg={p0.damage}), init={p0.initiative} "
-            f"P1(dmg={p1.damage}), init={p1.initiative}"
+            f"  Round {self.game.round} | "
+            f"P0(dmg={p0.damage}, init={p0.initiative}) / "
+            f"P1(dmg={p1.damage}, init={p1.initiative})"
         )
 
     def observation_space(self, agent: PZAgentId) -> Box:
