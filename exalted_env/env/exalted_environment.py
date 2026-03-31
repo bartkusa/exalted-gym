@@ -242,18 +242,18 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
             init_gained = rules.action_withering_attack(
                 cur_combatant, defender, current_round=self.game.round
             )
-            reward = -0.001 if init_gained <= 0 else (0.001 * init_gained)
-            self._add_reward(cur_agent, reward)
+            # reward = -0.001 if init_gained <= 0 else (0.001 * init_gained)
+            # self._add_reward(cur_agent, reward)
         elif chosen_action == CombatActions.DECISIVE_ATTACK:
             was_crashed = cur_combatant.is_crashed
             dmg_dealt = rules.action_decisive_attack(cur_combatant, defender)
             self_crashed_now = cur_combatant.is_crashed and not was_crashed
-            reward = (
-                -0.010
-                if self_crashed_now
-                else -0.006 if dmg_dealt <= 0 else (0.003 * dmg_dealt)
-            )
-            self._add_reward(cur_agent, reward)
+            # reward = (
+            #     -0.010
+            #     if self_crashed_now
+            #     else -0.006 if dmg_dealt <= 0 else (0.003 * dmg_dealt)
+            # )
+            # self._add_reward(cur_agent, reward)
             if defender.state == CombatState.DEAD:
                 self._finish_episode(winner=cur_agent, loser=other_agent)
 
