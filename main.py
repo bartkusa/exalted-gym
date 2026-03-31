@@ -323,6 +323,10 @@ def run_dqn_training(cfg: DQNConfig) -> None:
                     loss = F.smooth_l1_loss(q_pred, q_target)
                     optimizer.zero_grad()
                     loss.backward()
+                    # gemini said this would keep math updates from being "too violent"
+                    torch.nn.utils.clip_grad_norm_(
+                        policy_net.parameters(), max_norm=1.0
+                    )
                     optimizer.step()
                     losses.append(float(loss.item()))
 
