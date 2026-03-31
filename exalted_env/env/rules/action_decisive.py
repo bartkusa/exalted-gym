@@ -1,5 +1,6 @@
 from exalted_env.env.models.combatant import CombatState, Combatant
 import exalted_env.env.rules.dice as dice
+from exalted_env.env.rules.initiative_crash import apply_self_crash
 
 
 def action_decisive_attack(attacker: Combatant, defender: Combatant) -> int:
@@ -10,6 +11,9 @@ def action_decisive_attack(attacker: Combatant, defender: Combatant) -> int:
     Returns:
         the amount of damage that the defender received; 0 if attack failed
     """
+    if attacker.is_crashed:
+        return 0
+
     # TODO: allow weapons, skills
 
     attack_pool = (
@@ -28,7 +32,7 @@ def action_decisive_attack(attacker: Combatant, defender: Combatant) -> int:
             case atk_init if 10 < atk_init:
                 attacker.initiative -= 3
 
-        # TODO: self-crash?
+        apply_self_crash(attacker)
 
         return 0
     else:

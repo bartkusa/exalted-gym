@@ -76,6 +76,24 @@ class Combatant:
         self.took_turn: bool = False
         """Did the combatant take their turn this round, or not?"""
 
+        self.is_crashed: bool = False
+        """Whether this combatant is currently in Initiative Crash state."""
+
+        self.crashed_by: PZAgentId | None = None
+        """Agent id of the opponent who caused the current crash, if any."""
+
+        self.crash_turns_remaining: int = 0
+        """How many of this combatant's own turns remain before automatic crash recovery."""
+
+        self.crash_recovered_round: int | None = None
+        """Round number when this combatant most recently recovered from crash."""
+
+        self.extra_turn_pending: bool = False
+        """Whether this combatant should immediately act again due to Initiative Shift."""
+
+        self.forced_attack_target: PZAgentId | None = None
+        """During shift extra turn, attack actions may only target this opponent."""
+
         # endregion ==== Ephemeral combat state ====
 
     @property

@@ -7,5 +7,6 @@ from .action_withering import action_withering_attack
 
 from .join_battle import join_battle
 from .round_start import round_start
+from .turn_end import turn_end
 from .turn_start import turn_start
 from .who_is_next import who_is_next

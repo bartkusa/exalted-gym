@@ -196,6 +196,10 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         other_agent = self._other_agent(cur_agent)
         cur_combatant = self._combatants[cur_agent]
         defender = self._combatants[other_agent]
+        had_forced_attack_restriction = (
+            cur_combatant.forced_attack_target is not None
+            and not cur_combatant.extra_turn_pending
+        )
 
         self._clear_rewards()
         rules.turn_start(cur_combatant)
@@ -207,6 +211,18 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
             chosen_action = CombatActions.FULL_DEFENSE
             self._add_reward(cur_agent, -0.1)
 
+        if chosen_action == CombatActions.DECISIVE_ATTACK and cur_combatant.is_crashed:
+            chosen_action = CombatActions.FULL_DEFENSE
+            self._add_reward(cur_agent, -0.05)
+
+        if (
+            chosen_action in (CombatActions.WITHERING_ATTACK, CombatActions.DECISIVE_ATTACK)
+            and cur_combatant.forced_attack_target is not None
+            and cur_combatant.forced_attack_target != defender.agent
+        ):
+            chosen_action = CombatActions.FULL_DEFENSE
+            self._add_reward(cur_agent, -0.05)
+
         # Execute chosen action
         if chosen_action == CombatActions.SURRENDER:
             rules.action_surrender(cur_combatant)
@@ -216,7 +232,9 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         elif chosen_action == CombatActions.FULL_DEFENSE:
             rules.action_full_defense(cur_combatant)
         elif chosen_action == CombatActions.WITHERING_ATTACK:
-            init_gained = rules.action_withering_attack(cur_combatant, defender)
+            init_gained = rules.action_withering_attack(
+                cur_combatant, defender, current_round=self.game.round
+            )
             reward = -0.02 if init_gained <= 0 else (0.01 * init_gained)
             self._add_reward(cur_agent, reward)
         elif chosen_action == CombatActions.DECISIVE_ATTACK:
@@ -226,8 +244,18 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
             if defender.state == CombatState.DEAD:
                 self._finish_episode(winner=cur_agent, loser=other_agent)
 
-        # End of turn; pick next agent. Round might increment.
-        self.agent_selection = self._which_agent_is_next()
+        rules.turn_end(cur_combatant, current_round=self.game.round)
+
+        # Initiative Shift can grant an immediate extra turn.
+        if cur_combatant.extra_turn_pending and not self._is_done():
+            cur_combatant.extra_turn_pending = False
+            self.agent_selection = cur_agent
+        else:
+            # End of turn; pick next agent. Round might increment.
+            self.agent_selection = self._which_agent_is_next()
+
+        if had_forced_attack_restriction:
+            cur_combatant.forced_attack_target = None
 
         # If round incremented over max, truncate the game and call it a draw.
         if (

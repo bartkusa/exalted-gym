@@ -1,8 +1,11 @@
 from exalted_env.env.models.combatant import Combatant
 import exalted_env.env.rules.dice as dice
+from exalted_env.env.rules.initiative_crash import apply_crash_from_opponent
 
 
-def action_withering_attack(attacker: Combatant, defender: Combatant) -> int:
+def action_withering_attack(
+    attacker: Combatant, defender: Combatant, current_round: int
+) -> int:
     """
     (Ex3 page 191) A move that represents one combatant trying to gain advantage over the other, and steal their
     Initiative. NEVER causes any damage to the defender.
@@ -35,9 +38,10 @@ def action_withering_attack(attacker: Combatant, defender: Combatant) -> int:
     )
     damage_roll = dice.roll_d10s(post_soak_dmg_pool)
 
-    attacker.initiative += damage_roll.sux + 1
     defender.initiative -= damage_roll.sux
+    apply_crash_from_opponent(attacker, defender, current_round=current_round)
 
-    # TODO: initiative crash / shift?
+    init_gained = damage_roll.sux + 1
+    attacker.initiative += init_gained
 
-    return damage_roll.sux + 1
+    return init_gained
