@@ -18,7 +18,7 @@ def run_smoke_test(episodes: int = 5) -> None:
 
         while env.agents:
             agent = env.agent_selection
-            action = env.action_space(agent).sample()
+            action = 0 if agent is None else env.action_space(agent).sample()
             env.step(action)
             steps += 1
             for name in episode_returns:
