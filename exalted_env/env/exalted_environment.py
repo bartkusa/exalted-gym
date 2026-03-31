@@ -215,7 +215,7 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
 
         if chosen_action == CombatActions.DECISIVE_ATTACK and cur_combatant.is_crashed:
             chosen_action = CombatActions.FULL_DEFENSE
-            self._add_reward(cur_agent, -0.05)
+            self._add_reward(cur_agent, -0.1)
 
         if (
             chosen_action
@@ -224,7 +224,7 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
             and cur_combatant.forced_attack_target != defender.agent
         ):
             chosen_action = CombatActions.FULL_DEFENSE
-            self._add_reward(cur_agent, -0.05)
+            self._add_reward(cur_agent, -0.1)
 
         # Execute chosen action
         if chosen_action == CombatActions.SURRENDER:
@@ -245,7 +245,7 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
             dmg_dealt = rules.action_decisive_attack(cur_combatant, defender)
             self_crashed_now = cur_combatant.is_crashed and not was_crashed
             reward = (
-                -0.1
+                -0.08
                 if self_crashed_now
                 else -0.02 if dmg_dealt <= 0 else (0.02 * dmg_dealt)
             )
