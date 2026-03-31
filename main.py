@@ -75,8 +75,12 @@ class ReplayBuffer:
         obs, actions, rewards, next_obs, dones = zip(*batch)
         obs_t = torch.tensor(np.array(obs), dtype=torch.float32, device=device)
         actions_t = torch.tensor(actions, dtype=torch.int64, device=device).unsqueeze(1)
-        rewards_t = torch.tensor(rewards, dtype=torch.float32, device=device).unsqueeze(1)
-        next_obs_t = torch.tensor(np.array(next_obs), dtype=torch.float32, device=device)
+        rewards_t = torch.tensor(rewards, dtype=torch.float32, device=device).unsqueeze(
+            1
+        )
+        next_obs_t = torch.tensor(
+            np.array(next_obs), dtype=torch.float32, device=device
+        )
         dones_t = torch.tensor(dones, dtype=torch.float32, device=device).unsqueeze(1)
         return obs_t, actions_t, rewards_t, next_obs_t, dones_t
 
@@ -144,7 +148,9 @@ def _load_checkpoint_if_exists(
     ckpt = torch.load(path, map_location=device)
     if isinstance(ckpt, dict) and "policy_state_dict" in ckpt:
         policy_net.load_state_dict(ckpt["policy_state_dict"])
-        target_net.load_state_dict(ckpt.get("target_state_dict", ckpt["policy_state_dict"]))
+        target_net.load_state_dict(
+            ckpt.get("target_state_dict", ckpt["policy_state_dict"])
+        )
         if "optimizer_state_dict" in ckpt:
             optimizer.load_state_dict(ckpt["optimizer_state_dict"])
         start_episode = int(ckpt.get("episode", 0))
@@ -153,7 +159,9 @@ def _load_checkpoint_if_exists(
         policy_net.load_state_dict(ckpt)
         target_net.load_state_dict(ckpt)
         start_episode = 0
-    print(f"Loaded checkpoint from {path.resolve()} (starting at episode {start_episode}).")
+    print(
+        f"Loaded checkpoint from {path.resolve()} (starting at episode {start_episode})."
+    )
     return start_episode
 
 
