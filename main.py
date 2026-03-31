@@ -9,7 +9,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from exalted_env.env.types import PZAgentId
+from exalted_env.env.types import PZAgentId, agent_red_1, agent_blue_1
 from exalted_env.exalted_env_v0 import ExaltedEnv
 
 
@@ -91,6 +91,8 @@ def run_smoke_test(episodes: int = 5, render: bool = False) -> None:
         env.reset(seed=ep)
         episode_returns = {agent: 0.0 for agent in env.possible_agents}
         steps = 0
+        if render:
+            env.render()
 
         while env.agents:
             agent = env.agent_selection
@@ -104,8 +106,8 @@ def run_smoke_test(episodes: int = 5, render: bool = False) -> None:
 
         print(
             f"episode={ep} steps={steps} "
-            f"return_p0={episode_returns[PZAgentId('agent_red_1')]:.3f} "
-            f"return_p1={episode_returns[PZAgentId('agent_blue_1')]:.3f}"
+            f"return_🔴={episode_returns[agent_red_1]:.3f} "
+            f"return_🟦={episode_returns[agent_blue_1]:.3f}"
         )
     env.close()
 
@@ -266,10 +268,10 @@ def run_dqn_training(cfg: DQNConfig) -> None:
                     )
                     _emit_spy(
                         f"  Round {env.game.round} | "
-                        f"P0(dmg={env._combatants[PZAgentId('agent_red_1')].damage}, "
-                        f"init={env._combatants[PZAgentId('agent_red_1')].initiative}) / "
-                        f"P1(dmg={env._combatants[PZAgentId('agent_blue_1')].damage}, "
-                        f"init={env._combatants[PZAgentId('agent_blue_1')].initiative})"
+                        f"🔴1(dmg={env._combatants[agent_red_1].damage}, "
+                        f"init={env._combatants[agent_red_1].initiative}) / "
+                        f"🟦1(dmg={env._combatants[agent_blue_1].damage}, "
+                        f"init={env._combatants[agent_blue_1].initiative})"
                     )
 
                 if (
@@ -299,14 +301,14 @@ def run_dqn_training(cfg: DQNConfig) -> None:
 
             if (ep + 1) % cfg.log_every == 0:
                 avg_loss = float(np.mean(losses)) if losses else 0.0
-                explore_pct = (100.0 * random_actions / max(1, episode_steps))
+                explore_pct = 100.0 * random_actions / max(1, episode_steps)
                 print(
                     f"ep={ep + 1}/{start_episode + cfg.episodes} "
                     f"steps={episode_steps} "
                     f"eps={epsilon:.3f} "
                     f"explore={explore_pct:.1f}% "
-                    f"ret_p0={episode_returns[PZAgentId('agent_red_1')]:.3f} "
-                    f"ret_p1={episode_returns[PZAgentId('agent_blue_1')]:.3f} "
+                    f"ret_🔴={episode_returns[agent_red_1]:.3f} "
+                    f"ret_🟦={episode_returns[agent_blue_1]:.3f} "
                     f"avg_return_100={rolling_avg_return:.3f} "
                     f"best_avg_return_100={best_avg_return:.3f} "
                     f"replay={len(replay)} "
@@ -315,8 +317,8 @@ def run_dqn_training(cfg: DQNConfig) -> None:
             if should_spy:
                 _emit_spy(
                     f"--- End spy ep {ep + 1} | "
-                    f"ret_p0={episode_returns[PZAgentId('agent_red_1')]:.3f} "
-                    f"ret_p1={episode_returns[PZAgentId('agent_blue_1')]:.3f} "
+                    f"ret_🔴={episode_returns[agent_red_1]:.3f} "
+                    f"ret_🟦={episode_returns[agent_blue_1]:.3f} "
                     f"steps={episode_steps} ---\n"
                 )
     finally:

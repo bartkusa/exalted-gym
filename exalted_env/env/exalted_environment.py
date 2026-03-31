@@ -9,10 +9,13 @@ from exalted_env.env.models.character import Character
 from exalted_env.env.models.combatant import CombatState, Combatant
 from exalted_env.env.models.game_1on1_combat import Game1On1Combat
 import exalted_env.env.rules as rules
-from exalted_env.env.types import PZAgentId, PZObsType, PZActionType
-
-agent_red_1 = PZAgentId("agent_red_1")
-agent_blue_1 = PZAgentId("agent_blue_1")
+from exalted_env.env.types import (
+    PZAgentId,
+    PZObsType,
+    PZActionType,
+    agent_blue_1,
+    agent_red_1,
+)
 
 
 class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
@@ -284,12 +287,12 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         if self.game is None:
             print("Environment not initialized. Call reset() first.")
             return
-        p0 = self._combatants[agent_red_1]
-        p1 = self._combatants[agent_blue_1]
+        red = self._combatants[agent_red_1]
+        blu = self._combatants[agent_blue_1]
         print(
             f"  Round {self.game.round} | "
-            f"P0(dmg={p0.damage}, init={p0.initiative}) / "
-            f"P1(dmg={p1.damage}, init={p1.initiative})"
+            f"🔴(dmg={red.damage}, init={red.initiative}) / "
+            f"🟦(dmg={blu.damage}, init={blu.initiative})"
         )
 
     def observation_space(self, agent: PZAgentId) -> Box:
