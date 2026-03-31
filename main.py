@@ -9,6 +9,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+from exalted_env.env.models.combatant import CombatState
 from exalted_env.env.types import PZAgentId, agent_red_1, agent_blue_1
 from exalted_env.exalted_env_v0 import ExaltedEnv
 
@@ -224,7 +225,14 @@ def run_dqn_training(cfg: DQNConfig) -> None:
             )
 
             if should_spy:
+                red = env._combatants[agent_red_1]
+                blu = env._combatants[agent_blue_1]
                 _emit_spy(f"\n--- Spy episode {ep + 1} (epsilon={epsilon:.3f}) ---")
+                _emit_spy(
+                    f"  Round {env.game.round}  |  "
+                    f"🔴(dmg={red.damage}, init={red.initiative})  /  "
+                    f"🟦(dmg={blu.damage}, init={blu.initiative})"
+                )
 
             while env.agents:
                 agent = env.agent_selection
@@ -263,15 +271,34 @@ def run_dqn_training(cfg: DQNConfig) -> None:
 
                 if should_spy:
                     _emit_spy(
-                        f"step={episode_steps} agent={agent} action={action_name} "
-                        f"reward={reward:+.3f} done={done} explore={was_exploration}"
+                        f"step={episode_steps} reward={reward:+.3f} done={done} explore={was_exploration} "
+                        f"agent={agent} action={action_name}"
                     )
+                    red = env._combatants[agent_red_1]
+                    blu = env._combatants[agent_blue_1]
+                    red_emoji = (
+                        "🏳️ "
+                        if red.state == CombatState.SURRENDERED
+                        else (
+                            "💀"
+                            if red.state == CombatState.DEAD
+                            else "😨" if red.is_crashed else ""
+                        )
+                    )
+                    blu_emoji = (
+                        "🏳️ "
+                        if blu.state == CombatState.SURRENDERED
+                        else (
+                            "💀"
+                            if blu.state == CombatState.DEAD
+                            else "😨" if blu.is_crashed else ""
+                        )
+                    )
+                    draw_emoji = "⚔️" if env.game.round > cfg.max_rounds else ""
                     _emit_spy(
-                        f"  Round {env.game.round} | "
-                        f"🔴1(dmg={env._combatants[agent_red_1].damage}, "
-                        f"init={env._combatants[agent_red_1].initiative}) / "
-                        f"🟦1(dmg={env._combatants[agent_blue_1].damage}, "
-                        f"init={env._combatants[agent_blue_1].initiative})"
+                        f"  Round {env.game.round}{draw_emoji}  |  "
+                        f"🔴{red_emoji}(dmg={red.damage}, init={red.initiative})  /  "
+                        f"🟦{blu_emoji}(dmg={blu.damage}, init={blu.initiative})"
                     )
 
                 if (

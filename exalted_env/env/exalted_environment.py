@@ -289,10 +289,21 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
             return
         red = self._combatants[agent_red_1]
         blu = self._combatants[agent_blue_1]
+        red_emoji = (
+            "🏳️"
+            if red.state == CombatState.SURRENDERED
+            else "💀" if red.state == CombatState.DEAD else ""
+        )
+        blu_emoji = (
+            "🏳️"
+            if blu.state == CombatState.SURRENDERED
+            else "💀" if blu.state == CombatState.DEAD else ""
+        )
+        draw_emoji = "⚔️" if self.game.round > self.max_rounds else ""
         print(
-            f"  Round {self.game.round} | "
-            f"🔴(dmg={red.damage}, init={red.initiative}) / "
-            f"🟦(dmg={blu.damage}, init={blu.initiative})"
+            f"  Round {self.game.round}{draw_emoji} | "
+            f"🔴{red_emoji}(dmg={red.damage}, init={red.initiative})  /  "
+            f"🟦{blu_emoji}(dmg={blu.damage}, init={blu.initiative})"
         )
 
     def observation_space(self, agent: PZAgentId) -> Box:
