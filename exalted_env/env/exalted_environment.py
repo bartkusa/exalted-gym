@@ -1,11 +1,8 @@
-from __future__ import annotations
-
 import random
 
 import numpy as np
 from gymnasium.spaces import Box, Discrete
 from pettingzoo import AECEnv
-from pettingzoo.utils.agent_selector import agent_selector
 
 from exalted_env.env.combat_actions import CombatActions
 from exalted_env.env.models.character import Character
@@ -15,6 +12,10 @@ import exalted_env.env.rules as rules
 
 
 class ExaltedEnv(AECEnv):
+    """
+    Encapsulates an environment for Exalted 3e combat.
+    """
+
     metadata = {
         "name": "exalted_env_v0",
         "render_modes": ["human"],
@@ -78,8 +79,8 @@ class ExaltedEnv(AECEnv):
         self._combatants: dict[str, Combatant] = {}
         """Mapping of agent-name to their Combatant"""
 
-        self._agent_selector = None
         self.agent_selection: str | None = None
+        """Exposes the currently active agent to the driver"""
 
     def reset(self, seed=None, options=None):
         if seed is not None:
@@ -126,14 +127,11 @@ class ExaltedEnv(AECEnv):
         rules.join_battle([combatant_red, combatant_blue])
         self.game = Game1On1Combat(combatant_red, combatant_blue)
 
-        self._agent_selector = agent_selector(self.agents)
-        self.agent_selection = (
-            self._select_agent_from_game() or self._agent_selector.next()
-        )
+        self.agent_selection = self._which_actor_is_next()
 
     def observe(self, agent):
         me = self._combatants[agent]
-        other_agent = self._other(agent)
+        other_agent = self._other_agent(agent)
         them = self._combatants[other_agent]
         round_num = self.game.round if self.game is not None else 1
 
@@ -161,8 +159,10 @@ class ExaltedEnv(AECEnv):
         return obs
 
     def step(self, action):
+        # If no agent selected, or game is over, then skip ahead
         if self.agent_selection is None:
             return
+
         if (
             self.terminations[self.agent_selection]
             or self.truncations[self.agent_selection]
@@ -170,56 +170,55 @@ class ExaltedEnv(AECEnv):
             self._was_dead_step(action)
             return
 
-        agent = self.agent_selection
-        other = self._other(agent)
-        actor = self._combatants[agent]
-        defender = self._combatants[other]
+        # OK, starting our turn...
+        cur_agent = self.agent_selection
+        other_agent = self._other_agent(cur_agent)
+        cur_combatant = self._combatants[cur_agent]
+        defender = self._combatants[other_agent]
 
         self._clear_rewards()
-        actor.took_turn = True
-        actor.defense_modifier = 0
+        rules.turn_start(cur_combatant)
 
         try:
             chosen_action = self.ACTIONS[int(action)]
         except (ValueError, TypeError, IndexError):
+            # Punish invalid actions, instead of crashing?
             chosen_action = CombatActions.FULL_DEFENSE
-            self._add_reward(agent, -0.05)
+            self._add_reward(cur_agent, -0.1)
 
+        # Execute chosen action
         if chosen_action == CombatActions.SURRENDER:
-            rules.action_surrender(actor)
-            self._finish_episode(winner=other, loser=agent)
+            rules.action_surrender(cur_combatant)
+            self._finish_episode(winner=other_agent, loser=cur_agent)
         elif chosen_action == CombatActions.FULL_DEFENSE:
-            rules.action_full_defense(actor)
-            self._add_reward(agent, 0.01)
+            rules.action_full_defense(cur_combatant)
+            self._add_reward(cur_agent, 0.01)
         elif chosen_action == CombatActions.WITHERING_ATTACK:
-            init_gained = rules.action_withering_attack(actor, defender)
-
+            init_gained = rules.action_withering_attack(cur_combatant, defender)
             reward = -0.02 if init_gained <= 0 else (0.05 + 0.01 * init_gained)
-            self._add_reward(agent, reward)
+            self._add_reward(cur_agent, reward)
         elif chosen_action == CombatActions.DECISIVE_ATTACK:
-            dmg_dealt = rules.action_decisive_attack(actor, defender)
-
+            dmg_dealt = rules.action_decisive_attack(cur_combatant, defender)
             reward = -0.02 if dmg_dealt <= 0 else (0.10 + 0.02 * dmg_dealt)
-            self._add_reward(agent, reward)
+            self._add_reward(cur_agent, reward)
             if defender.state == CombatState.DEAD:
-                self._finish_episode(winner=agent, loser=other)
+                self._finish_episode(winner=cur_agent, loser=other_agent)
 
+        # End of turn; pick next actor. Round might increment.
+        self.agent_selection = self._which_actor_is_next()
+
+        # If round incremented over max, truncate the game and call it a draw.
         if (
             self.game is not None
             and self.game.round > self.max_rounds
             and not self._is_done()
         ):
-            self.truncations[agent] = True
-            self.truncations[other] = True
+            self.truncations[cur_agent] = True
+            self.truncations[other_agent] = True
 
         if self._is_done():
             self.agents = []
             self.agent_selection = None
-        else:
-            next_actor = self._select_agent_from_game()
-            if next_actor is None:
-                next_actor = self._agent_selector.next()
-            self.agent_selection = next_actor
 
         self._accumulate_rewards()
 
@@ -231,8 +230,8 @@ class ExaltedEnv(AECEnv):
         p1 = self._combatants["agent_blue_1"]
         print(
             f"Round {self.game.round} | "
-            f"P0(init={p0.initiative}, dmg={p0.damage}) "
-            f"P1(init={p1.initiative}, dmg={p1.damage})"
+            f"P0(dmg={p0.damage}), init={p0.initiative} "
+            f"P1(dmg={p1.damage}), init={p1.initiative}"
         )
 
     def observation_space(self, agent):
@@ -241,30 +240,35 @@ class ExaltedEnv(AECEnv):
     def action_space(self, agent):
         return self.action_spaces[agent]
 
-    def _other(self, agent: str) -> str:
+    def _other_agent(self, agent: str) -> str:
         return "agent_blue_1" if agent == "agent_red_1" else "agent_red_1"
 
-    def _select_agent_from_game(self) -> str | None:
+    def _which_actor_is_next(self) -> str | None:
+        """
+        May cause `game.round` to increment.
+
+        Returns:
+            The name of the next actor to go, using `rules.who_is_next(Game)`
+        """
         if self.game is None:
             return None
-        actor = self.game.getNextActor()
-        if actor is None:
-            return None
-        if actor is self._combatants["agent_red_1"]:
-            return "agent_red_1"
-        return "agent_blue_1"
+        next_combatant = rules.who_is_next(self.game)
+        return None if next_combatant is None else next_combatant.actor
 
     def _finish_episode(self, winner: str, loser: str):
         # TODO soften loss, if loser surrendered
+        # TODO reduce victory, if winner wounded?
         self.terminations[winner] = True
         self.terminations[loser] = True
         self._add_reward(winner, 1.0)
         self._add_reward(loser, -1.0)
 
     def _is_done(self) -> bool:
+        """Does any agent have a value in `self.terminations` or `self.truncations`?"""
         return any(self.terminations.values()) or any(self.truncations.values())
 
     def _add_reward(self, agent: str, value: float):
-        other = self._other(agent)
+        """Increment agent's `self.rewards` by `value`, and decrement the other agent's by the same amount"""
+        other = self._other_agent(agent)
         self.rewards[agent] += value
         self.rewards[other] -= value
