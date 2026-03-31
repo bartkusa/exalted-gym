@@ -188,7 +188,7 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
                 me.defense_modifier,
                 them.defense_modifier,
                 # Strategic layer - what are the major combined values the model needs to weigh?
-                # withering pool
+                # withering attack pool
                 (
                     me.character.dexterity
                     + me.character.melee
@@ -201,9 +201,9 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
                     + them.weapon1.accuracy
                     + them.wound_penalty
                 ),
-                # decisive pool
-                me.character.strength + me.weapon1.damage + me.wound_penalty,
-                them.character.strength + them.weapon1.damage + them.wound_penalty,
+                # decisive attack pool
+                me.character.dexterity + me.character.melee + me.wound_penalty,
+                them.character.dexterity + them.character.melee + them.wound_penalty,
                 # DV
                 me.dv,
                 them.dv,
