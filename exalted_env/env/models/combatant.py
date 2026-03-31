@@ -1,6 +1,8 @@
 from enum import Enum
 import math
 
+from exalted_env.env.exalted_environment import PZAgentId
+
 from exalted_env.env.models.armor import Armor, noArmor
 from exalted_env.env.models.character import Character
 from exalted_env.env.models.weapon import Weapon, fists
@@ -21,13 +23,13 @@ class Combatant:
 
     def __init__(
         self,
-        actor: str,
+        agent: PZAgentId,
         character: Character,
         *,
         armor: Armor | None = None,
         weapon: Weapon = fists,
     ) -> None:
-        self.actor: str = actor
+        self.agent: PZAgentId = agent
 
         self.character = character
 
@@ -117,7 +119,7 @@ class Combatant:
         assert self.damage >= 0
 
         count_health_levels = len(self.character.health_levels)
-        assert len(count_health_levels) > 0
+        assert count_health_levels > 0
 
         index = self.damage if (self.damage < count_health_levels) else -1
         return self.character.health_levels[index]
