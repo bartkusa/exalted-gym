@@ -26,8 +26,8 @@ class DQNConfig:
     train_freq: int = 4
     target_update_freq: int = 500
     eps_start: float = 1.0
-    eps_end: float = 0.05
-    eps_decay_episodes: int = 1500
+    eps_end: float = 0.01
+    eps_decay_episodes: int = 2500
     seed: int = 0
     log_every: int = 25
     save_path: str = "dqn_exalted.pt"
