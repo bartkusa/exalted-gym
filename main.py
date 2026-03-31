@@ -172,7 +172,6 @@ def run_dqn_training(cfg: DQNConfig) -> None:
     random.seed(cfg.seed)
     np.random.seed(cfg.seed)
     torch.manual_seed(cfg.seed)
-    torch.set_num_threads(4)
 
     env = ExaltedEnv(max_rounds=cfg.max_rounds)
     env.reset(seed=cfg.seed)
