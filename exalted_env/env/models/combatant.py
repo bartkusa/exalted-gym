@@ -1,11 +1,10 @@
 from enum import Enum
 import math
 
-from exalted_env.env.exalted_environment import PZAgentId
-
 from exalted_env.env.models.armor import Armor, noArmor
 from exalted_env.env.models.character import Character
 from exalted_env.env.models.weapon import Weapon, fists
+from exalted_env.env.types import PZAgentId
 
 
 class CombatState(Enum):

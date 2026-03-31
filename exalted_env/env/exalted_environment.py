@@ -1,21 +1,15 @@
 import random
 
 import numpy as np
-from numpy.typing import NDArray
 from gymnasium.spaces import Box, Discrete
 from pettingzoo import AECEnv
-from typing import NewType, TypeAlias
 
 from exalted_env.env.combat_actions import CombatActions
 from exalted_env.env.models.character import Character
 from exalted_env.env.models.combatant import CombatState, Combatant
 from exalted_env.env.models.game_1on1_combat import Game1On1Combat
 import exalted_env.env.rules as rules
-
-
-PZAgentId = NewType("PZAgentId", str)
-PZObsType: TypeAlias = NDArray[np.int32]
-PZActionType: TypeAlias = int | None
+from exalted_env.env.types import PZAgentId, PZObsType, PZActionType
 
 agent_red_1 = PZAgentId("agent_red_1")
 agent_blue_1 = PZAgentId("agent_blue_1")
