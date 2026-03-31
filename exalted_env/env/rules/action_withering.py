@@ -1,6 +1,9 @@
 from exalted_env.env.models.combatant import Combatant
 import exalted_env.env.rules.dice as dice
-from exalted_env.env.rules.initiative_crash import apply_crash_from_opponent
+from exalted_env.env.rules.initiative_crash import (
+    apply_crash_from_opponent,
+    recover_from_crash,
+)
 
 
 def action_withering_attack(
@@ -41,6 +44,8 @@ def action_withering_attack(
     old_attacker_init = attacker.initiative
 
     attacker.initiative += damage_roll.sux + 1
+    if attacker.is_crashed and attacker.initiative > 0:
+        recover_from_crash(attacker, current_round)
     defender.initiative -= damage_roll.sux
     apply_crash_from_opponent(attacker, defender, current_round=current_round)
 
