@@ -40,7 +40,7 @@ def action_decisive_attack(attacker: Combatant, defender: Combatant) -> int:
         attacker.initiative = 3
 
         defender.damage += damage_roll.sux
-        if defender.damage > len(defender.character.health_levels):
+        if defender.damage >= len(defender.character.health_levels):
             defender.state = CombatState.DEAD
 
         return damage_roll.sux
