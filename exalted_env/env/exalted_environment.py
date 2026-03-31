@@ -38,8 +38,8 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
     # region ---- reward constants ----
 
     I_WIN_REWARD = 1.000
-    DRAW_REWARD = -0.200
-    I_SURRENDER_REWARD = -0.800
+    DRAW_REWARD = -0.500
+    I_SURRENDER_REWARD = -0.750
     I_DIED_REWARD = -1.000
 
     WOUND_REWARD_DIVISOR = 20
