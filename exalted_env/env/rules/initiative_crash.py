@@ -45,7 +45,7 @@ def _apply_initiative_shift(
 def apply_crash_from_opponent(
     attacker: Combatant, defender: Combatant, current_round: int
 ) -> bool:
-    if defender.initiative >= 0 or defender.is_crashed:
+    if defender.initiative > 0 or defender.is_crashed:
         return False
 
     _enter_crash(defender, caused_by=attacker)
