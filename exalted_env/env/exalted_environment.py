@@ -221,14 +221,13 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
             )
         elif chosen_action == CombatActions.FULL_DEFENSE:
             rules.action_full_defense(cur_combatant)
-            self._add_reward(cur_agent, 0.01)
         elif chosen_action == CombatActions.WITHERING_ATTACK:
             init_gained = rules.action_withering_attack(cur_combatant, defender)
-            reward = -0.02 if init_gained <= 0 else (0.05 + 0.01 * init_gained)
+            reward = -0.02 if init_gained <= 0 else (0.01 * init_gained)
             self._add_reward(cur_agent, reward)
         elif chosen_action == CombatActions.DECISIVE_ATTACK:
             dmg_dealt = rules.action_decisive_attack(cur_combatant, defender)
-            reward = -0.02 if dmg_dealt <= 0 else (0.10 + 0.02 * dmg_dealt)
+            reward = -0.02 if dmg_dealt <= 0 else (0.02 * dmg_dealt)
             self._add_reward(cur_agent, reward)
             if defender.state == CombatState.DEAD:
                 self._finish_episode(winner=cur_agent, loser=other_agent)
