@@ -271,8 +271,14 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
             # reward = -0.001 if init_gained <= 0 else (0.001 * init_gained)
             # self._add_reward(cur_agent, reward)
         elif chosen_action == CombatActions.DECISIVE_ATTACK:
+            defender_health_left = (
+                len(defender.character.health_levels) - defender.damage
+            )
             dmg_dealt = rules.action_decisive_attack(cur_combatant, defender)
-            self._add_reward(cur_agent, dmg_dealt * self.DAMAGE_DONE_REWARD_MULT)
+            self._add_reward(
+                cur_agent,
+                min(dmg_dealt, defender_health_left) * self.DAMAGE_DONE_REWARD_MULT,
+            )
             if defender.state == CombatState.DEAD:
                 self._finish_episode(winner=cur_agent, loser=other_agent)
 
