@@ -49,7 +49,7 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
     Eg: if I have a -2 wound penalty, that's worth `-2/20 = -0.1` points.
     """
 
-    PENALTY_FOR_INVALID_ACTION = -0.400
+    PENALTY_FOR_INVALID_ACTION = -0.150
     """Because I haven't figured out how to mask actions yet."""
 
     TICKING_CLOCK_TURN_REWARD = -0.005
@@ -421,4 +421,5 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         """Increment agent's `self.rewards` by `value`, and decrement the other agent's by the same amount"""
         other = self._other_agent(agent)
         self.rewards[agent] += value
-        self.rewards[other] -= value
+        # Don't make rewards zero-sum anymore. It might confuse the neural net.
+        # self.rewards[other] -= value
