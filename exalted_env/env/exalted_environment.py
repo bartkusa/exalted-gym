@@ -149,6 +149,8 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
                 them.wound_penalty,
                 me.initiative,
                 them.initiative,
+                me.crash_turns_remaining,
+                them.crash_turns_remaining,
                 me.defense_modifier,
                 them.defense_modifier,
                 # Strategic layer - what are the major combined values the model needs to weigh?
