@@ -175,18 +175,18 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
 
         obs = np.array(
             [
-                round_num,
+                round_num / self.max_rounds,
                 # Dynamic layer - what changes, and the model needs to see it change?
-                me.damage,
-                them.damage,
-                me.wound_penalty,
-                them.wound_penalty,
-                me.initiative,
-                them.initiative,
-                me.crash_turns_remaining,
-                them.crash_turns_remaining,
-                me.defense_modifier,
-                them.defense_modifier,
+                me.damage / len(me.character.health_levels),
+                them.damage / len(me.character.health_levels),
+                me.wound_penalty / 4,
+                them.wound_penalty / 4,
+                me.initiative / 15,
+                them.initiative / 15,
+                me.crash_turns_remaining / 3,
+                them.crash_turns_remaining / 3,
+                me.defense_modifier / 10,
+                them.defense_modifier / 10,
                 # Strategic layer - what are the major combined values the model needs to weigh?
                 # withering attack pool
                 (
@@ -194,22 +194,25 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
                     + me.character.melee
                     + me.weapon1.accuracy
                     + me.wound_penalty
-                ),
+                )
+                / 20,
                 (
                     them.character.dexterity
                     + them.character.melee
                     + them.weapon1.accuracy
                     + them.wound_penalty
-                ),
+                )
+                / 20,
                 # decisive attack pool
-                me.character.dexterity + me.character.melee + me.wound_penalty,
-                them.character.dexterity + them.character.melee + them.wound_penalty,
+                (me.character.dexterity + me.character.melee + me.wound_penalty) / 10,
+                (them.character.dexterity + them.character.melee + them.wound_penalty)
+                / 10,
                 # DV
-                me.dv,
-                them.dv,
+                me.dv / 10,
+                them.dv / 10,
                 # Soak
-                me.character.stamina + me.armor.soak,
-                them.character.stamina + them.armor.soak,
+                (me.character.stamina + me.armor.soak) / 20,
+                (them.character.stamina + them.armor.soak) / 20,
             ],
             dtype=np.int32,
         )
