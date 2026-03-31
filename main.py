@@ -18,8 +18,8 @@ from exalted_env.exalted_env_v0 import ExaltedEnv
 class DQNConfig:
     episodes: int = 2000
     max_rounds: int = 25
-    gamma: float = 0.99
-    lr: float = 1e-3
+    gamma: float = 0.95
+    lr: float = 1e-4
     batch_size: int = 128
     replay_size: int = 50_000
     learning_starts: int = 1_000
