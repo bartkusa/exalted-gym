@@ -35,7 +35,33 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         CombatActions.DECISIVE_ATTACK,
     ]
 
-    PENALTY_FOR_INVALID_ACTION = -0.2
+    # region ---- reward constants ----
+
+    I_WIN_REWARD = 1.000
+    DRAW_REWARD = -0.200
+    I_SURRENDER_REWARD = -0.800
+    I_DIED_REWARD = -1.000
+
+    WOUND_REWARD_DIVISOR = 20
+    """
+    Only applies at game end, as a penalty in win or draw, but NOT to surrenderer.
+
+    Eg: if I have a -2 wound penalty, that's worth `-2/20 = -0.1` points.
+    """
+
+    PENALTY_FOR_INVALID_ACTION = -0.400
+    """Because I haven't figured out how to mask actions yet."""
+
+    TICKING_CLOCK_TURN_REWARD = -0.005
+    """Create pressure to end match."""
+
+    IM_CRASHED_TURN_REWARD = 4 * TICKING_CLOCK_TURN_REWARD
+    """Signal that crash is a dangerous state."""
+
+    DAMAGE_DONE_REWARD_MULT = 0.050
+    """Incentivize decisive attacks, instead of high-init-as-a-security-blanket."""
+
+    # endregion ---- reward constants ----
 
     def __init__(self, max_rounds: int = 25):
         super().__init__()
@@ -245,19 +271,17 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
             # reward = -0.001 if init_gained <= 0 else (0.001 * init_gained)
             # self._add_reward(cur_agent, reward)
         elif chosen_action == CombatActions.DECISIVE_ATTACK:
-            was_crashed = cur_combatant.is_crashed
             dmg_dealt = rules.action_decisive_attack(cur_combatant, defender)
-            self_crashed_now = cur_combatant.is_crashed and not was_crashed
-            # reward = (
-            #     -0.010
-            #     if self_crashed_now
-            #     else -0.006 if dmg_dealt <= 0 else (0.003 * dmg_dealt)
-            # )
-            # self._add_reward(cur_agent, reward)
+            self._add_reward(cur_agent, dmg_dealt * self.DAMAGE_DONE_REWARD_MULT)
             if defender.state == CombatState.DEAD:
                 self._finish_episode(winner=cur_agent, loser=other_agent)
 
         rules.turn_end(cur_combatant, current_round=self.game.round)
+
+        if not self._is_done():
+            self._add_reward(cur_agent, self.TICKING_CLOCK_TURN_REWARD)
+            if cur_combatant.is_crashed:
+                self._add_reward(cur_agent, self.IM_CRASHED_TURN_REWARD)
 
         # Initiative Shift can grant an immediate extra turn.
         if cur_combatant.extra_turn_pending and not self._is_done():
@@ -348,15 +372,16 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         self.terminations[loser] = True
 
         winning_combatant = self._combatants[winner]
-        losing_combatant = self._combatants[loser]
+        # losing_combatant = self._combatants[loser]
 
-        winner_reward = 1.0 + (winning_combatant.wound_penalty / 10.0)
+        winner_reward = self.I_WIN_REWARD + (
+            winning_combatant.wound_penalty / self.WOUND_REWARD_DIVISOR
+        )
         self.rewards[winner] += float(winner_reward)
 
-        if loser_surrendered:
-            loser_reward = -0.2 + (losing_combatant.wound_penalty / 10.0)
-        else:
-            loser_reward = -1.0
+        loser_reward = (
+            self.I_SURRENDER_REWARD if loser_surrendered else self.I_DIED_REWARD
+        )
         self.rewards[loser] += float(loser_reward)
 
     def _declare_a_draw(self) -> None:
@@ -366,8 +391,14 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
 
         red = self._combatants[agent_red_1]
         blue = self._combatants[agent_blue_1]
-        self.rewards[agent_red_1] += (red.wound_penalty - blue.wound_penalty) / 10.0
-        self.rewards[agent_blue_1] += (blue.wound_penalty - red.wound_penalty) / 10.0
+        self.rewards[agent_red_1] += (
+            self.DRAW_REWARD
+            + (red.wound_penalty - blue.wound_penalty) / self.WOUND_REWARD_DIVISOR
+        )
+        self.rewards[agent_blue_1] += (
+            self.DRAW_REWARD
+            + (blue.wound_penalty - red.wound_penalty) / self.WOUND_REWARD_DIVISOR
+        )
 
     def _is_done(self) -> bool:
         """Does any agent have a value in `self.terminations` or `self.truncations`?"""
