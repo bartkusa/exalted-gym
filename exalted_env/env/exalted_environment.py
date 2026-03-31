@@ -58,6 +58,9 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
     IM_CRASHED_TURN_REWARD = 4 * TICKING_CLOCK_TURN_REWARD
     """Signal that crash is a dangerous state."""
 
+    CRASHED_THEM_REWARD = 0.1
+    """Dunno if we should reward withering, but CRASHING is especially valuable."""
+
     DAMAGE_DONE_REWARD_MULT = 0.050
     """Incentivize decisive attacks, instead of high-init-as-a-security-blanket."""
 
@@ -265,11 +268,12 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         elif chosen_action == CombatActions.FULL_DEFENSE:
             rules.action_full_defense(cur_combatant)
         elif chosen_action == CombatActions.WITHERING_ATTACK:
+            defender_was_crashed = defender.is_crashed
             init_gained = rules.action_withering_attack(
                 cur_combatant, defender, current_round=self.game.round
             )
-            # reward = -0.001 if init_gained <= 0 else (0.001 * init_gained)
-            # self._add_reward(cur_agent, reward)
+            if defender.is_crashed and not defender_was_crashed:
+                self._add_reward(cur_agent, self.CRASHED_THEM_REWARD)
         elif chosen_action == CombatActions.DECISIVE_ATTACK:
             defender_health_left = (
                 len(defender.character.health_levels) - defender.damage
