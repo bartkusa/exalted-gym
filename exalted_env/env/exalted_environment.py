@@ -86,7 +86,7 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         """
 
         self.observation_spaces: dict[PZAgentId, Box] = {
-            agent: Box(low=-200, high=200, shape=(20,), dtype=np.int32)
+            agent: Box(low=-200, high=200, shape=(20,), dtype=np.float32)
             for agent in self.possible_agents
         }
         """
@@ -214,7 +214,7 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
                 (me.character.stamina + me.armor.soak) / 20,
                 (them.character.stamina + them.armor.soak) / 20,
             ],
-            dtype=np.int32,
+            dtype=np.float32,
         )
         return obs
 

@@ -4,7 +4,7 @@ from typing import NewType, TypeAlias
 
 
 PZAgentId = NewType("PZAgentId", str)
-PZObsType: TypeAlias = NDArray[np.int32]
+PZObsType: TypeAlias = NDArray[np.float32]
 PZActionType: TypeAlias = int | None
 
 
