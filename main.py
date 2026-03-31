@@ -226,7 +226,7 @@ def run_dqn_training(cfg: DQNConfig) -> None:
                 if was_exploration:
                     random_actions += 1
 
-                action_name = str(env.ACTIONS[int(action)])
+                action_name = env.action_name(action)
                 env.step(action)
 
                 reward = float(env.rewards.get(agent, 0.0))

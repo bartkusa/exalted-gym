@@ -261,6 +261,15 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
     def action_space(self, agent: PZAgentId) -> Discrete:
         return self.action_spaces[agent]
 
+    def action_name(self, action_idx: int | None) -> str:
+        if action_idx is None:
+            return "NONE"
+        try:
+            action = self.ACTIONS[int(action_idx)]
+        except (ValueError, TypeError, IndexError):
+            return f"INVALID({action_idx})"
+        return action.name
+
     def _other_agent(self, agent: PZAgentId) -> PZAgentId:
         return agent_blue_1 if agent == agent_red_1 else agent_red_1
 
