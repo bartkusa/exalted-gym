@@ -208,8 +208,9 @@ def run_dqn_training(cfg: DQNConfig) -> None:
         spy_log_file.flush()
 
     def _emit_spy(line: str) -> None:
-        print(line)
-        if spy_log_file is not None:
+        if spy_log_file is None:
+            print(line)
+        else:
             spy_log_file.write(line + "\n")
             spy_log_file.flush()
 
