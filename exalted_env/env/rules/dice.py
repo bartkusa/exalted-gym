@@ -7,11 +7,13 @@ class RollResult:
         self.sux = successes
 
 
-def roll_d10s(pool: int, *, double: list[int] | None = None, target: int = 7) -> RollResult:
+def roll_d10s(
+    pool: int, *, double: list[int] | None = None, target: int = 7
+) -> RollResult:
     if pool <= 0:
         return RollResult(0, [])
 
-    double_values = double or [10]
+    double_values = [10] if double is None else double
     rolls = []
     successes = 0
     for _ in range(pool):
