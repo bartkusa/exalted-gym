@@ -21,11 +21,14 @@ class Combatant:
 
     def __init__(
         self,
+        actor: str,
         character: Character,
         *,
         armor: Armor | None = None,
         weapon: Weapon = fists,
     ) -> None:
+        self.actor: str = actor
+
         self.character = character
 
         # region ==== Equipment ====

@@ -116,8 +116,8 @@ class ExaltedEnv(AECEnv):
             melee=4,
         )
 
-        combatant_red = Combatant(char_red)
-        combatant_blue = Combatant(char_blue)
+        combatant_red = Combatant("agent_red_1", char_red)
+        combatant_blue = Combatant("agent_blue_1", char_blue)
         self._combatants = {
             "agent_red_1": combatant_red,
             "agent_blue_1": combatant_blue,
