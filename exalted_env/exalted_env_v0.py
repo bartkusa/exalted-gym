@@ -1,1 +1,1 @@
-from env.exalted_environment import ExaltedEnv
+from exalted_env.env.exalted_environment import ExaltedEnv
