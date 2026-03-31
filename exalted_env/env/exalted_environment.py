@@ -216,7 +216,9 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         # Execute chosen action
         if chosen_action == CombatActions.SURRENDER:
             rules.action_surrender(cur_combatant)
-            self._finish_episode(winner=other_agent, loser=cur_agent)
+            self._finish_episode(
+                winner=other_agent, loser=cur_agent, loser_surrendered=True
+            )
         elif chosen_action == CombatActions.FULL_DEFENSE:
             rules.action_full_defense(cur_combatant)
             self._add_reward(cur_agent, 0.01)
@@ -240,8 +242,7 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
             and self.game.round > self.max_rounds
             and not self._is_done()
         ):
-            self.truncations[cur_agent] = True
-            self.truncations[other_agent] = True
+            self._declare_a_draw()
 
         if self._is_done():
             self.agents = []
@@ -282,13 +283,37 @@ class ExaltedEnv(AECEnv[PZAgentId, PZObsType, PZActionType]):
         next_combatant = rules.who_is_next(self.game)
         return None if next_combatant is None else next_combatant.agent
 
-    def _finish_episode(self, winner: PZAgentId, loser: PZAgentId) -> None:
-        # TODO soften loss, if loser surrendered
-        # TODO reduce victory, if winner wounded?
+    def _finish_episode(
+        self,
+        winner: PZAgentId,
+        loser: PZAgentId,
+        *,
+        loser_surrendered: bool = False,
+    ) -> None:
         self.terminations[winner] = True
         self.terminations[loser] = True
-        self._add_reward(winner, 1.0)
-        self._add_reward(loser, -1.0)
+
+        winning_combatant = self._combatants[winner]
+        losing_combatant = self._combatants[loser]
+
+        winner_reward = 1.0 - (winning_combatant.wound_penalty / 10.0)
+        self.rewards[winner] += float(winner_reward)
+
+        if loser_surrendered:
+            loser_reward = -0.2 - (losing_combatant.wound_penalty / 10.0)
+        else:
+            loser_reward = -1.0
+        self.rewards[loser] += float(loser_reward)
+
+    def _declare_a_draw(self) -> None:
+        """Set self.truncations, and apply rewards to everyone, based on relative damage."""
+        self.truncations[agent_red_1] = True
+        self.truncations[agent_blue_1] = True
+
+        red = self._combatants[agent_red_1]
+        blue = self._combatants[agent_blue_1]
+        self.rewards[agent_red_1] += (blue.wound_penalty - red.wound_penalty) / 10.0
+        self.rewards[agent_blue_1] += (red.wound_penalty - blue.wound_penalty) / 10.0
 
     def _is_done(self) -> bool:
         """Does any agent have a value in `self.terminations` or `self.truncations`?"""
