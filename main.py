@@ -107,8 +107,8 @@ def run_smoke_test(episodes: int = 5, render: bool = False) -> None:
 
         print(
             f"episode={ep} steps={steps} "
-            f"return_🔴={episode_returns[agent_red_1]:.3f} "
-            f"return_🟦={episode_returns[agent_blue_1]:.3f}"
+            f"return_🔴={episode_returns[agent_red_1]:+.3f} "
+            f"return_🟦={episode_returns[agent_blue_1]:+.3f}"
         )
     env.close()
 
@@ -347,18 +347,18 @@ def run_dqn_training(cfg: DQNConfig) -> None:
                     f"steps={episode_steps} "
                     f"eps={epsilon:.3f} "
                     f"explore={explore_pct:.1f}% "
-                    f"ret_🔴={episode_returns[agent_red_1]:.3f} "
-                    f"ret_🟦={episode_returns[agent_blue_1]:.3f} "
-                    f"avg_return_100={rolling_avg_return:.3f} "
-                    f"best_avg_return_100={best_avg_return:.3f} "
+                    f"ret_🔴={episode_returns[agent_red_1]:+.3f} "
+                    f"ret_🟦={episode_returns[agent_blue_1]:+.3f} "
+                    f"avg_return_100={rolling_avg_return:+.3f} "
+                    f"best_avg_return_100={best_avg_return:+.3f} "
                     f"replay={len(replay)} "
                     f"avg_loss={avg_loss:.4f}"
                 )
             if should_spy:
                 _emit_spy(
                     f"--- End spy ep {ep + 1} | "
-                    f"ret_🔴={episode_returns[agent_red_1]:.3f} "
-                    f"ret_🟦={episode_returns[agent_blue_1]:.3f} "
+                    f"ret_🔴={episode_returns[agent_red_1]:+.3f} "
+                    f"ret_🟦={episode_returns[agent_blue_1]:+.3f} "
                     f"steps={episode_steps} ---\n"
                 )
     finally:
