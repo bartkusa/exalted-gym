@@ -282,7 +282,11 @@ def run_dqn_training(cfg: DQNConfig) -> None:
                         else (
                             "💀"
                             if red.state == CombatState.DEAD
-                            else "😨" if red.is_crashed else ""
+                            else (
+                                f"😨{red.crash_turns_remaining}"
+                                if red.is_crashed
+                                else ""
+                            )
                         )
                     )
                     blu_emoji = (
@@ -291,7 +295,11 @@ def run_dqn_training(cfg: DQNConfig) -> None:
                         else (
                             "💀"
                             if blu.state == CombatState.DEAD
-                            else "😨" if blu.is_crashed else ""
+                            else (
+                                f"😨{blu.crash_turns_remaining}"
+                                if blu.is_crashed
+                                else ""
+                            )
                         )
                     )
                     draw_emoji = "⚔️" if env.game.round > cfg.max_rounds else ""
