@@ -38,10 +38,10 @@ def action_withering_attack(
     )
     damage_roll = dice.roll_d10s(post_soak_dmg_pool)
 
+    old_attacker_init = attacker.initiative
+
+    attacker.initiative += damage_roll.sux + 1
     defender.initiative -= damage_roll.sux
     apply_crash_from_opponent(attacker, defender, current_round=current_round)
 
-    init_gained = damage_roll.sux + 1
-    attacker.initiative += init_gained
-
-    return init_gained
+    return attacker.initiative - old_attacker_init
